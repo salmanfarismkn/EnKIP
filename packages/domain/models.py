@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import (
     DateTime,
@@ -12,9 +12,8 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from .database import Base
-    
+from packages.domain.database import Base
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 class IngestionStatus(StrEnum):
     PENDING = "pending"
@@ -22,14 +21,13 @@ class IngestionStatus(StrEnum):
     COMPLETED = "completed"
     FAILED = "failed"
 
-
 class Tenant(Base):
     __tablename__ = "tenants"
 
-    id: Mapped[str] = mapped_column(
-        String(36),
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         primary_key=True,
-        default=lambda: str(uuid4()),
+        default=uuid4,
     )
 
     name: Mapped[str] = mapped_column(
@@ -56,14 +54,14 @@ class Tenant(Base):
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[str] = mapped_column(
-        String(36),
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         primary_key=True,
-        default=lambda: str(uuid4()),
+        default=uuid4,
     )
 
-    tenant_id: Mapped[str] = mapped_column(
-        String(36),
+    tenant_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -101,14 +99,14 @@ class User(Base):
 class DataSource(Base):
     __tablename__ = "data_sources"
 
-    id: Mapped[str] = mapped_column(
-        String(36),
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         primary_key=True,
-        default=lambda: str(uuid4()),
+        default=uuid4,
     )
 
-    tenant_id: Mapped[str] = mapped_column(
-        String(36),
+    tenant_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -138,24 +136,26 @@ class DataSource(Base):
         back_populates="data_source",
     )
 
+
+
 class Document(Base):
     __tablename__ = "documents"
 
-    id: Mapped[str] = mapped_column(
-        String(36),
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         primary_key=True,
-        default=lambda: str(uuid4()),
+        default=uuid4,
     )
 
-    tenant_id: Mapped[str] = mapped_column(
-        String(36),
+    tenant_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
-    data_source_id: Mapped[str] = mapped_column(
-        String(36),
+    data_source_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         ForeignKey("data_sources.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -192,17 +192,18 @@ class Document(Base):
     )
 
 
+
 class DocumentVersion(Base):
     __tablename__ = "document_versions"
 
-    id: Mapped[str] = mapped_column(
-        String(36),
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         primary_key=True,
-        default=lambda: str(uuid4()),
+        default=uuid4,
     )
 
-    document_id: Mapped[str] = mapped_column(
-        String(36),
+    document_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         ForeignKey("documents.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -245,21 +246,21 @@ class DocumentVersion(Base):
 class IngestionJob(Base):
     __tablename__ = "ingestion_jobs"
 
-    id: Mapped[str] = mapped_column(
-        String(36),
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         primary_key=True,
-        default=lambda: str(uuid4()),
+        default=uuid4,
     )
 
-    tenant_id: Mapped[str] = mapped_column(
-        String(36),
+    tenant_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
-    document_version_id: Mapped[str] = mapped_column(
-        String(36),
+    document_version_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         ForeignKey("document_versions.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -291,3 +292,11 @@ class IngestionJob(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+
+
+class DataSourceType(StrEnum):
+    LOCAL_UPLOAD = "local_upload"
+    GITHUB = "github"
+    JIRA = "jira"
+    SLACK = "slack"
+    CONFLUENCE = "confluence"
