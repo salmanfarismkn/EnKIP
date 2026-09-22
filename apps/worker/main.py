@@ -3,7 +3,7 @@ from pathlib import Path
 from packages.domain.database import SessionLocal
 from packages.ingestion.local_storage import LocalObjectStorage
 from packages.ingestion.parser_registry import ParserRegistry
-
+from apps.api.config import settings
 
 def process_job(job_id: str) -> None:
     from uuid import UUID
@@ -16,7 +16,7 @@ def process_job(job_id: str) -> None:
 
     try:
         storage = LocalObjectStorage(
-            root=Path("data"),
+            root=settings.storage_root,
         )
 
         parser_registry = ParserRegistry()

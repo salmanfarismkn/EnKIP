@@ -65,6 +65,11 @@ class IngestionService:
                 filename=document.title,
             )
 
+            if not parsed.text.strip():
+                raise ValueError(
+                    "No text could be extracted from the document"
+                )
+
             version.extracted_text = parsed.text
             version.processing_status = (
                 DocumentProcessingStatus.COMPLETED

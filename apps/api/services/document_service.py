@@ -30,6 +30,9 @@ class DocumentService:
         content: bytes,
     ) -> tuple[Document, DocumentVersion, IngestionJob]:
 
+        if not content:
+            raise ValueError("Document content cannot be empty")
+
         checksum = hashlib.sha256(content).hexdigest()
 
         existing_document = self._find_existing_document(
@@ -70,11 +73,23 @@ class DocumentService:
             f"source"
         )
 
+        print(
+            f"Storing {filename}: "
+            f"{len(content)} bytes"
+        )
+        
         self._storage.put(
             object_key,
             content,
         )
 
+        stored_content = self._storage.get(object_key)
+
+        if len(stored_content) != len(content):
+            raise RuntimeError(
+                "Stored object size does not match uploaded content"
+            )
+        
         document.object_key = object_key
 
         job = IngestionJob(
