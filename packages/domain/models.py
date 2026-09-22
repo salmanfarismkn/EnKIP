@@ -21,6 +21,19 @@ class IngestionStatus(StrEnum):
     COMPLETED = "completed"
     FAILED = "failed"
 
+class DocumentProcessingStatus(StrEnum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    
+class DataSourceType(StrEnum):
+    LOCAL_UPLOAD = "local_upload"
+    GITHUB = "github"
+    JIRA = "jira"
+    SLACK = "slack"
+    CONFLUENCE = "confluence"
+
 class Tenant(Base):
     __tablename__ = "tenants"
 
@@ -192,7 +205,6 @@ class Document(Base):
     )
 
 
-
 class DocumentVersion(Base):
     __tablename__ = "document_versions"
 
@@ -219,6 +231,22 @@ class DocumentVersion(Base):
         nullable=False,
     )
 
+    processing_status: Mapped[DocumentProcessingStatus] = mapped_column(
+        String(32),
+        nullable=False,
+        default=DocumentProcessingStatus.PENDING,
+    )
+
+    extracted_text: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    processing_error: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -241,7 +269,6 @@ class DocumentVersion(Base):
             name="uq_document_checksum",
         ),
     )
-
 
 class IngestionJob(Base):
     __tablename__ = "ingestion_jobs"
@@ -294,9 +321,3 @@ class IngestionJob(Base):
     )
 
 
-class DataSourceType(StrEnum):
-    LOCAL_UPLOAD = "local_upload"
-    GITHUB = "github"
-    JIRA = "jira"
-    SLACK = "slack"
-    CONFLUENCE = "confluence"

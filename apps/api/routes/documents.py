@@ -1,13 +1,20 @@
-from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    UploadFile,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from apps.api.dependencies import get_db
 from apps.api.schemas.document import DocumentUploadResponse
 from apps.api.services.document_service import DocumentService
 from packages.ingestion.local_storage import LocalObjectStorage
+from apps.api.config import settings
 
 router = APIRouter(
     prefix="/tenants/{tenant_id}/documents",
@@ -28,8 +35,14 @@ async def upload_document(
 ) -> DocumentUploadResponse:
     content = await file.read()
 
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file is empty",
+        )
+
     storage = LocalObjectStorage(
-        root=Path("data"),
+        root=settings.storage_root,
     )
 
     service = DocumentService(
