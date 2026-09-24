@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from marshal import version
 from uuid import UUID
 
 from sqlalchemy import select
@@ -13,7 +14,8 @@ from packages.domain.models import (
 )
 from packages.ingestion.parser_registry import ParserRegistry
 from packages.ingestion.storage import ObjectStorage
-
+from packages.ingestion.chunker import DocumentChunker
+from apps.worker.services.chunk_service import ChunkService
 
 class IngestionService:
     def __init__(
@@ -25,6 +27,8 @@ class IngestionService:
         self._db = db
         self._storage = storage
         self._parser_registry = parser_registry
+        self._chunker = DocumentChunker()
+        self._chunk_service = ChunkService(db)
 
     def process_job(self, job_id: UUID) -> None:
         job = self._get_job(job_id)
@@ -65,12 +69,16 @@ class IngestionService:
                 filename=document.title,
             )
 
-            if not parsed.text.strip():
-                raise ValueError(
-                    "No text could be extracted from the document"
-                )
+            chunks = self._chunker.chunk(parsed)
+
+            self._chunk_service.replace_chunks(
+                tenant_id=job.tenant_id,
+                document_version_id=version.id,
+                chunks=chunks,
+            )
 
             version.extracted_text = parsed.text
+
             version.processing_status = (
                 DocumentProcessingStatus.COMPLETED
             )
