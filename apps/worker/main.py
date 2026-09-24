@@ -1,9 +1,13 @@
-from pathlib import Path
-
 from packages.domain.database import SessionLocal
 from packages.ingestion.local_storage import LocalObjectStorage
 from packages.ingestion.parser_registry import ParserRegistry
 from apps.api.config import settings
+from packages.llm.fake_embeddings import FakeEmbeddingProvider
+
+from apps.worker.services.embedding_service import EmbeddingService
+from apps.worker.services.chunk_service import ChunkService
+from packages.ingestion.chunker import DocumentChunker
+
 
 def process_job(job_id: str) -> None:
     from uuid import UUID
@@ -19,12 +23,30 @@ def process_job(job_id: str) -> None:
             root=settings.storage_root,
         )
 
+        embedding_provider = FakeEmbeddingProvider(
+            dimensions=settings.embedding_dimensions,
+        )
+
+        embedding_service = EmbeddingService(
+            db=db,
+            provider=embedding_provider,
+        )
+
         parser_registry = ParserRegistry()
+
+        chunker = DocumentChunker()
+
+        chunk_service = ChunkService(
+            db=db,
+        )
 
         service = IngestionService(
             db=db,
             storage=storage,
             parser_registry=parser_registry,
+            chunker=chunker,
+            chunk_service=chunk_service,
+            embedding_service=embedding_service,
         )
 
         service.process_job(UUID(job_id))

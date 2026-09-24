@@ -5,6 +5,8 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from apps.api.schemas import document
+from apps.worker.services.embedding_service import EmbeddingService
 from packages.domain.models import (
     Document,
     DocumentProcessingStatus,
@@ -23,12 +25,16 @@ class IngestionService:
         db: Session,
         storage: ObjectStorage,
         parser_registry: ParserRegistry,
+        chunker: DocumentChunker,
+        chunk_service: ChunkService,
+        embedding_service: EmbeddingService,
     ) -> None:
         self._db = db
         self._storage = storage
         self._parser_registry = parser_registry
-        self._chunker = DocumentChunker()
-        self._chunk_service = ChunkService(db)
+        self._chunker = chunker
+        self._chunk_service = chunk_service
+        self._embedding_service = embedding_service
 
     def process_job(self, job_id: UUID) -> None:
         job = self._get_job(job_id)
@@ -70,11 +76,15 @@ class IngestionService:
             )
 
             chunks = self._chunker.chunk(parsed)
-
-            self._chunk_service.replace_chunks(
-                tenant_id=job.tenant_id,
+            persisted_chunks = self._chunk_service.replace_chunks(
+                tenant_id=document.tenant_id,
                 document_version_id=version.id,
                 chunks=chunks,
+            )
+
+            self._embedding_service.embed_chunks(
+                tenant_id=document.tenant_id,
+                chunks=persisted_chunks,
             )
 
             version.extracted_text = parsed.text
@@ -91,7 +101,6 @@ class IngestionService:
 
         except Exception as exc:
             self._handle_failure(job, exc)
-
             raise
 
     def _get_job(self, job_id: UUID) -> IngestionJob:
