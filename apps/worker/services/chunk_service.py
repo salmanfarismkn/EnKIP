@@ -16,7 +16,7 @@ class ChunkService:
         tenant_id: UUID,
         document_version_id: UUID,
         chunks: list[Chunk],
-    ) -> None:
+    ) -> list[DocumentChunk]:
 
         self._db.execute(
             delete(DocumentChunk).where(
@@ -25,16 +25,20 @@ class ChunkService:
             )
         )
 
+        document_chunks: list[DocumentChunk] = []
         for chunk in chunks:
-            self._db.add(
-                DocumentChunk(
-                    tenant_id=tenant_id,
-                    document_version_id=document_version_id,
-                    chunk_index=chunk.chunk_index,
-                    section_title=chunk.section_title,
-                    text=chunk.text,
-                    page_number=chunk.page_number,
-                    start_offset=chunk.start_offset,
-                    end_offset=chunk.end_offset,
-                )
+            document_chunk = DocumentChunk(
+                tenant_id=tenant_id,
+                document_version_id=document_version_id,
+                chunk_index=chunk.chunk_index,
+                section_title=chunk.section_title,
+                text=chunk.text,
+                page_number=chunk.page_number,
+                start_offset=chunk.start_offset,
+                end_offset=chunk.end_offset,
             )
+            document_chunks.append(document_chunk)
+            self._db.add(document_chunk)
+        self._db.flush()
+
+        return document_chunks

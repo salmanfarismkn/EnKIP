@@ -6,11 +6,16 @@ from typing import Protocol
 class EmbeddingResult:
     vector: list[float]
     model: str
+    version: str
 
 
 class EmbeddingProvider(Protocol):
     @property
     def model_name(self) -> str:
+        ...
+
+    @property
+    def model_version(self) -> str:
         ...
 
     @property
@@ -20,8 +25,5 @@ class EmbeddingProvider(Protocol):
     def embed(self, text: str) -> EmbeddingResult:
         ...
 
-    def embed_batch(
-        self,
-        texts: list[str],
-    ) -> list[EmbeddingResult]:
+    def embed_batch(self, texts: list[str]) -> list[EmbeddingResult]:
         ...
