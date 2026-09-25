@@ -75,12 +75,18 @@ class IngestionService:
                 filename=document.title,
             )
 
+
             chunks = self._chunker.chunk(parsed)
-            persisted_chunks = self._chunk_service.replace_chunks(
-                tenant_id=document.tenant_id,
-                document_version_id=version.id,
-                chunks=chunks,
+
+
+            persisted_chunks = (
+                self._chunk_service.replace_chunks(
+                    tenant_id=document.tenant_id,
+                    document_version_id=version.id,
+                    chunks=chunks,
+                )
             )
+
 
             self._embedding_service.embed_chunks(
                 tenant_id=document.tenant_id,
@@ -100,8 +106,20 @@ class IngestionService:
             self._db.commit()
 
         except Exception as exc:
-            self._handle_failure(job, exc)
+            self._db.rollback()
+
+            version.processing_status = (
+                DocumentProcessingStatus.FAILED
+            )
+
+            job.status = IngestionStatus.FAILED
+            job.completed_at = datetime.now(timezone.utc)
+            job.error_message = str(exc)
+
+            self._db.commit()
+
             raise
+
 
     def _get_job(self, job_id: UUID) -> IngestionJob:
         statement = select(IngestionJob).where(
