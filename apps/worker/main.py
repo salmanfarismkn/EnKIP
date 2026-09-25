@@ -2,7 +2,7 @@ from packages.domain.database import SessionLocal
 from packages.ingestion.local_storage import LocalObjectStorage
 from packages.ingestion.parser_registry import ParserRegistry
 from apps.api.config import settings
-from packages.llm.fake_embeddings import FakeEmbeddingProvider
+from packages.llm.openai_embeddings import OpenAIEmbeddingProvider
 
 from apps.worker.services.embedding_service import EmbeddingService
 from apps.worker.services.chunk_service import ChunkService
@@ -23,7 +23,9 @@ def process_job(job_id: str) -> None:
             root=settings.storage_root,
         )
 
-        embedding_provider = FakeEmbeddingProvider(
+        embedding_provider = OpenAIEmbeddingProvider(
+            api_key=settings.openai_api_key,
+            model_name=settings.embedding_model,
             dimensions=settings.embedding_dimensions,
         )
 
