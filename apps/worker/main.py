@@ -2,7 +2,7 @@ from packages.domain.database import SessionLocal
 from packages.ingestion.local_storage import LocalObjectStorage
 from packages.ingestion.parser_registry import ParserRegistry
 from apps.api.config import settings
-from packages.llm.openai_embeddings import OpenAIEmbeddingProvider
+from packages.llm.ollama_embeddings import OllamaEmbeddingProvider
 
 from apps.worker.services.embedding_service import EmbeddingService
 from apps.worker.services.chunk_service import ChunkService
@@ -23,12 +23,12 @@ def process_job(job_id: str) -> None:
             root=settings.storage_root,
         )
 
-        embedding_provider = OpenAIEmbeddingProvider(
-            api_key=settings.openai_api_key,
+        embedding_provider = OllamaEmbeddingProvider(
             model_name=settings.embedding_model,
             dimensions=settings.embedding_dimensions,
+            base_url=settings.ollama_base_url,
         )
-
+        
         embedding_service = EmbeddingService(
             db=db,
             provider=embedding_provider,

@@ -427,7 +427,7 @@ class ChunkEmbedding(Base):
     )
 
     embedding: Mapped[list[float]] = mapped_column(
-        Vector(1536),
+        Vector(1024),
         nullable=False,
     )
 

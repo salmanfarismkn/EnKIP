@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     embedding_model: str
     embedding_dimensions: int
 
-    openai_api_key: str
+    ollama_base_url: str = "http://localhost:11434"
 
     model_config = SettingsConfigDict(
         env_file=".env",
