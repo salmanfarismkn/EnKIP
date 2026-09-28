@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 from uuid import UUID, uuid4
+from sqlalchemy.dialects.postgresql import TSVECTOR
 
 from sqlalchemy import (
     DateTime,
@@ -372,6 +373,11 @@ class DocumentChunk(Base):
     )
 
     token_count: Mapped[int | None] = mapped_column(
+        nullable=True,
+    )
+    
+    search_vector: Mapped[str | None] = mapped_column(
+        TSVECTOR,
         nullable=True,
     )
 
