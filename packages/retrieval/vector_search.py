@@ -87,7 +87,7 @@ class VectorSearchService:
                 "section_title": row.section_title,
                 "page_number": row.page_number,
                 "distance": float(row.distance),
-                "similarity": 1.0 - float(row.distance),
+                "score": 1.0 - float(row.distance),
             }
             for row in rows
         ]

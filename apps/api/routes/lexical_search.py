@@ -41,7 +41,8 @@ def lexical_search(
                 text=result["text"],
                 section_title=result["section_title"],
                 page_number=result["page_number"],
-                similarity=result["rank"],
+                retrieval_score=result["score"],
+                rerank_score=result["rerank_score"],
             )
             for result in results
         ]

@@ -11,8 +11,9 @@ from apps.api.schemas.search import (
 )
 from apps.api.config import settings
 from packages.llm.ollama_embeddings import OllamaEmbeddingProvider
-from packages.retrieval.vector_search import VectorSearchService
-
+from packages.retrieval.hybrid_search import HybridSearchService
+from packages.retrieval.rrf import ReciprocalRankFusion
+from packages.retrieval.factory import get_reranker
 
 router = APIRouter(
     prefix="/tenants/{tenant_id}/search",
@@ -32,9 +33,12 @@ def search(
         base_url=settings.ollama_base_url,
     )
 
-    service = VectorSearchService(
+    reranker = get_reranker()
+
+    service = HybridSearchService(
         db=db,
         embedding_provider=provider,
+        reranker=reranker,
     )
 
     results = service.search(
@@ -52,7 +56,8 @@ def search(
                 text=result["text"],
                 section_title=result["section_title"],
                 page_number=result["page_number"],
-                similarity=result["similarity"],
+                retrieval_score=result["score"],
+                rerank_score=result["rerank_score"],
             )
             for result in results
         ]

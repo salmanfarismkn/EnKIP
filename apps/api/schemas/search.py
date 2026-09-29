@@ -15,7 +15,8 @@ class SearchResult(BaseModel):
     text: str
     section_title: str | None
     page_number: int | None
-    similarity: float
+    retrieval_score: float
+    rerank_score: float
 
 
 class SearchResponse(BaseModel):

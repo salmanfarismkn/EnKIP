@@ -8,6 +8,7 @@ from apps.api.routes.search import router as search_router
 from apps.api.routes.lexical_search import (
     router as lexical_search_router,
 )
+from apps.api.routes.query import router as query_router
 
 def create_app() -> FastAPI:
 
@@ -23,6 +24,9 @@ def create_app() -> FastAPI:
     app.include_router(document_router)
     app.include_router(search_router)
     app.include_router(lexical_search_router)
+    app.include_router(query_router)
+
+    
     return app
 
 
