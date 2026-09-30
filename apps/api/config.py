@@ -12,6 +12,9 @@ class Settings(BaseSettings):
 
     generation_model: str
 
+    query_decomposition_enabled: bool = True
+    decomposition_model: str
+
     ollama_base_url: str = "http://localhost:11434"
 
     model_config = SettingsConfigDict(

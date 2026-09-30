@@ -10,6 +10,7 @@ from apps.api.schemas.query import (
     QueryRequest,
     QueryResponse,
 )
+from packages.llm.citation_validator import CitationValidator
 from packages.llm.ollama_embeddings import (
     OllamaEmbeddingProvider,
 )
@@ -18,7 +19,9 @@ from packages.llm.ollama_generation import (
 )
 from packages.retrieval.factory import get_reranker
 from packages.retrieval.query_service import QueryService
-
+from packages.llm.ollama_decomposition import (
+    OllamaQueryDecomposer,
+)
 
 router = APIRouter(
     prefix="/tenants/{tenant_id}/query",
@@ -72,8 +75,23 @@ def query(
             start=1,
         )
     ]
+    
+    query_decomposer = OllamaQueryDecomposer(
+        model_name=settings.decomposition_model,
+        base_url=settings.ollama_base_url,
+    )
+
+    service = QueryService(
+        db=db,
+        embedding_provider=embedding_provider,
+        reranker=reranker,
+        answer_generator=answer_generator,
+        citation_validator=CitationValidator(),
+        query_decomposer=query_decomposer,
+    )
 
     return QueryResponse(
         answer=result.answer,
+        grounded=result.grounded,
         citations=citations,
     )
