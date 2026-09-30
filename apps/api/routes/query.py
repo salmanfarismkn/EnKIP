@@ -48,11 +48,18 @@ def query(
         base_url=settings.ollama_base_url,
     )
 
+    query_decomposer = OllamaQueryDecomposer(
+        model_name=settings.decomposition_model,
+        base_url=settings.ollama_base_url,
+    )
+
     service = QueryService(
         db=db,
         embedding_provider=embedding_provider,
         reranker=reranker,
         answer_generator=answer_generator,
+        citation_validator=CitationValidator(),
+        query_decomposer=query_decomposer,
     )
 
     result = service.answer(
@@ -75,20 +82,6 @@ def query(
             start=1,
         )
     ]
-    
-    query_decomposer = OllamaQueryDecomposer(
-        model_name=settings.decomposition_model,
-        base_url=settings.ollama_base_url,
-    )
-
-    service = QueryService(
-        db=db,
-        embedding_provider=embedding_provider,
-        reranker=reranker,
-        answer_generator=answer_generator,
-        citation_validator=CitationValidator(),
-        query_decomposer=query_decomposer,
-    )
 
     return QueryResponse(
         answer=result.answer,

@@ -67,16 +67,19 @@ class OllamaQueryDecomposer:
         seen: set[str] = set()
 
         for item in raw_queries[:5]:
-            if not isinstance(item, dict):
+            if isinstance(item, str):
+                sub_query = item.strip()
+                purpose = "general"
+            elif isinstance(item, dict):
+                sub_query = str(
+                    item.get("query", "")
+                ).strip()
+
+                purpose = str(
+                    item.get("purpose", "")
+                ).strip()
+            else:
                 continue
-
-            sub_query = str(
-                item.get("query", "")
-            ).strip()
-
-            purpose = str(
-                item.get("purpose", "")
-            ).strip()
 
             if not sub_query:
                 continue
