@@ -6,6 +6,7 @@ from packages.llm.prompts import (
     SYSTEM_PROMPT,
     build_user_prompt,
 )
+from packages.retrieval import evidence
 from packages.retrieval.evidence import Evidence
 
 
@@ -68,4 +69,5 @@ class OllamaAnswerGenerator:
         return GeneratedAnswer(
             answer=answer,
             evidence=evidence,
+            grounded=bool(evidence),
         )

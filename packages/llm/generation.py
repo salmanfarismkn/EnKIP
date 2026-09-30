@@ -8,6 +8,7 @@ from packages.retrieval.evidence import Evidence
 class GeneratedAnswer:
     answer: str
     evidence: list[Evidence]
+    grounded: bool
 
 
 class AnswerGenerator(Protocol):

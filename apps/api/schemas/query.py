@@ -21,4 +21,5 @@ class CitationResponse(BaseModel):
 
 class QueryResponse(BaseModel):
     answer: str
+    grounded: bool
     citations: list[CitationResponse]
