@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from sympy import limit
 
 from packages.llm.embeddings import EmbeddingProvider
+from packages.retrieval import graph_search
+from packages.retrieval.graph_search import GraphSearchService
 from packages.retrieval.lexical_search import LexicalSearchService
 from packages.retrieval.rrf import ReciprocalRankFusion
 from packages.retrieval.vector_search import VectorSearchService
@@ -18,6 +20,7 @@ class HybridSearchService:
         db: Session,
         embedding_provider: EmbeddingProvider,
         reranker: Reranker,
+        graph_search: GraphSearchService,
         rrf: ReciprocalRankFusion | None = None,
     ) -> None:
         self._vector_search = VectorSearchService(
@@ -29,8 +32,10 @@ class HybridSearchService:
             db=db,
         )
 
+        self._graph_search = graph_search
+
         self._rrf = rrf or ReciprocalRankFusion()
-        
+
         self._reranker = reranker
 
     def search(
@@ -45,7 +50,6 @@ class HybridSearchService:
         if limit <= 0:
             raise ValueError("Limit must be positive")
 
-        # Retrieve more candidates than we ultimately return.
         candidate_limit = max(limit * 3, 20)
 
         semantic_results = self._vector_search.search(
@@ -60,10 +64,17 @@ class HybridSearchService:
             limit=candidate_limit,
         )
 
+        graph_results = self._graph_search.search(
+            tenant_id=tenant_id,
+            query=query,
+            limit=candidate_limit,
+        )
+
         fused_results = self._rrf.fuse(
             [
                 semantic_results,
                 lexical_results,
+                graph_results,
             ]
         )
 
