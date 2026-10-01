@@ -65,7 +65,14 @@ class QueryService:
         )
 
         if not evidence:
-            return ...
+            return GeneratedAnswer(
+                answer=(
+                    "I could not find relevant information to "
+                    "answer this question."
+                ),
+                evidence=[],
+                grounded=False,
+            )
 
         generated = self._answer_generator.generate(
             query=query,

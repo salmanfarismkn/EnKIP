@@ -1,0 +1,26 @@
+from enum import StrEnum
+
+
+class EntityType(StrEnum):
+    PERSON = "PERSON"
+    TEAM = "TEAM"
+    SERVICE = "SERVICE"
+    SYSTEM = "SYSTEM"
+    INCIDENT = "INCIDENT"
+    TICKET = "TICKET"
+    PULL_REQUEST = "PULL_REQUEST"
+    REPOSITORY = "REPOSITORY"
+    DOCUMENT = "DOCUMENT"
+    TECHNOLOGY = "TECHNOLOGY"
+    API = "API"
+
+class RelationshipType(StrEnum):
+    OWNS = "OWNS"
+    DEPENDS_ON = "DEPENDS_ON"
+    AFFECTS = "AFFECTS"
+    FIXED_BY = "FIXED_BY"
+    CREATED_BY = "CREATED_BY"
+    BELONGS_TO = "BELONGS_TO"
+    USES = "USES"
+    CALLS = "CALLS"
+    RELATED_TO = "RELATED_TO"

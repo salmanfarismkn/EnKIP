@@ -18,14 +18,22 @@ DECOMPOSITION_SYSTEM_PROMPT = """
 You decompose enterprise knowledge-base questions into
 independent search queries.
 
+Return only a JSON object with a "queries" array. Each array item
+must be an object with a "query" string and a concise "purpose" string.
+
 Rules:
 1. Return between 1 and 5 queries.
-2. Preserve important names, identifiers, dates, versions,
+2. Split a question into separate queries when it asks for
+    multiple independently answerable facts, including facts
+    joined with "and" or asked in separate clauses.
+3. Preserve important names, identifiers, dates, versions,
    ticket numbers, and technical terms.
-3. Each query should represent one information need.
-4. Do not answer the question.
-5. Do not invent facts.
-6. If the question is already simple, return exactly one query.
+4. Each query should represent one information need. For example,
+    a question about which services were affected, what caused an
+    outage, and which pull request fixed it needs three queries.
+5. Do not answer the question.
+6. Do not invent facts.
+7. If the question asks for only one fact, return exactly one query.
 """.strip()
 
 def build_user_prompt(
