@@ -8,12 +8,14 @@ from packages.llm.generation import (
 )
 from packages.retrieval import evidence
 from packages.retrieval.evidence_assembler import EvidenceAssembler
+from packages.retrieval.graph_search import GraphSearchService
 from packages.retrieval.hybrid_search import HybridSearchService
+from packages.retrieval.lexical_search import LexicalSearchService
 from packages.retrieval.query_decomposition import SubQuery
 from packages.retrieval.reranker import Reranker
 from packages.retrieval.rrf import ReciprocalRankFusion
 from sqlalchemy.orm import Session
-
+from packages.retrieval.vector_search import VectorSearchService
 
 class QueryService:
     def __init__(
@@ -26,13 +28,21 @@ class QueryService:
         query_decomposer,
     ) -> None:
 
+        self._db = db
+
         self._query_decomposer = query_decomposer
 
         self._citation_validator = citation_validator
 
         self._hybrid_search = HybridSearchService(
-            db=db,
-            embedding_provider=embedding_provider,
+            vector_search=VectorSearchService(
+                db=db,
+                embedding_provider=embedding_provider,
+            ),
+            lexical_search=LexicalSearchService(
+                db=db,
+            ),
+            graph_search=GraphSearchService(),
             reranker=reranker,
             rrf=ReciprocalRankFusion(),
         )
@@ -105,6 +115,7 @@ class QueryService:
 
         for sub_query in sub_queries:
             results = self._hybrid_search.search(
+                db=self._db,
                 tenant_id=tenant_id,
                 query=sub_query.query,
                 limit=20,

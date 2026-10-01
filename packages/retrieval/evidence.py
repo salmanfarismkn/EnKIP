@@ -12,3 +12,4 @@ class Evidence:
     page_number: int | None
     retrieval_score: float
     rerank_score: float
+    graph_relationships: tuple[str, ...] = ()
