@@ -36,6 +36,66 @@ Rules:
 7. If the question asks for only one fact, return exactly one query.
 """.strip()
 
+
+GRAPH_EXTRACTION_SYSTEM_PROMPT = """
+You extract structured knowledge from enterprise documents.
+
+Return ONLY valid JSON in this exact shape:
+
+{
+  "entities": [
+    {
+      "name": "canonical entity name",
+      "entity_type": "ENTITY_TYPE",
+      "mention_text": "exact text used in the document"
+    }
+  ],
+  "relationships": [
+    {
+      "source_entity": "canonical entity name",
+      "target_entity": "canonical entity name",
+      "relationship_type": "RELATIONSHIP_TYPE",
+      "confidence": 0.0
+    }
+  ]
+}
+
+Allowed entity types:
+PERSON
+TEAM
+SERVICE
+SYSTEM
+INCIDENT
+TICKET
+PULL_REQUEST
+REPOSITORY
+DOCUMENT
+TECHNOLOGY
+API
+
+Allowed relationship types:
+OWNS
+DEPENDS_ON
+AFFECTS
+FIXED_BY
+CREATED_BY
+BELONGS_TO
+USES
+CALLS
+RELATED_TO
+
+Rules:
+- Extract only information explicitly supported by the text.
+- Do not invent entities or relationships.
+- Use the same canonical name for the same entity within the input.
+- mention_text must be the actual entity mention from the text.
+- confidence must be between 0.0 and 1.0.
+- Do not answer questions.
+- Do not include explanations outside the JSON.
+- If nothing can be extracted, return empty arrays.
+"""
+
+
 def build_user_prompt(
     query: str,
     context: str,

@@ -19,10 +19,13 @@ class EvidenceAssembler:
                     document_id=result["document_id"],
                     document_title=result["document_title"],
                     text=result["text"],
-                    section_title=result["section_title"],
-                    page_number=result["page_number"],
-                    retrieval_score=result["score"],
-                    rerank_score=result["rerank_score"],
+                    section_title=result.get("section_title"),
+                    page_number=result.get("page_number"),
+                    retrieval_score=result.get("retrieval_score", 0.0),
+                    rerank_score=result.get("rerank_score", 0.0),
+                    graph_relationships=tuple(
+                        result.get("graph_relationships", [])
+                    ),
                 )
             )
 

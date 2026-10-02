@@ -1,6 +1,4 @@
-from uuid import UUID
-
-from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from packages.domain.models import (
@@ -14,82 +12,79 @@ from packages.retrieval.graph_extraction import (
 
 
 class GraphService:
-    def __init__(self, db: Session) -> None:
-        self._db = db
-
     def persist_extraction(
         self,
-        tenant_id: UUID,
-        chunk_id: UUID,
+        db: Session,
+        tenant_id,
+        chunk_id,
         extraction: GraphExtractionResult,
     ) -> None:
         entity_map: dict[tuple[str, str], Entity] = {}
 
         for extracted in extraction.entities:
-            key = (
-                extracted.name.strip().lower(),
-                extracted.entity_type,
+            canonical_name = extracted.name.strip()
+            entity_type = extracted.entity_type.strip()
+
+            stmt = (
+                insert(Entity)
+                .values(
+                    tenant_id=tenant_id,
+                    canonical_name=canonical_name,
+                    entity_type=entity_type,
+                )
+                .on_conflict_do_nothing(
+                    constraint="uq_entity_tenant_name_type"
+                )
             )
 
-            if not key[0]:
-                continue
+            db.execute(stmt)
 
-            entity = self._db.execute(
-                select(Entity).where(
+            entity = (
+                db.query(Entity)
+                .filter(
                     Entity.tenant_id == tenant_id,
-                    Entity.canonical_name
-                    == extracted.name.strip(),
-                    Entity.entity_type
-                    == extracted.entity_type,
+                    Entity.canonical_name == canonical_name,
+                    Entity.entity_type == entity_type,
                 )
-            ).scalar_one_or_none()
+                .one()
+            )
 
-            if entity is None:
-                entity = Entity(
-                    tenant_id=tenant_id,
-                    canonical_name=extracted.name.strip(),
-                    entity_type=extracted.entity_type,
-                )
+            entity_map[
+                (canonical_name.lower(), entity_type)
+            ] = entity
 
-                self._db.add(entity)
-                self._db.flush()
-
-            entity_map[key] = entity
-
-            self._db.add(
-                EntityMention(
+            mention_stmt = (
+                insert(EntityMention)
+                .values(
                     tenant_id=tenant_id,
                     entity_id=entity.id,
                     chunk_id=chunk_id,
                     mention_text=extracted.mention_text,
                 )
+                .on_conflict_do_nothing(
+                    constraint="uq_entity_mention"
+                )
             )
+
+            db.execute(mention_stmt)
 
         for relationship in extraction.relationships:
-            source_key = (
-                relationship.source_entity.strip().lower(),
-                self._find_entity_type(
-                    extraction,
-                    relationship.source_entity,
-                ),
+            source = self._find_entity(
+                entity_map,
+                relationship.source_entity,
             )
 
-            target_key = (
-                relationship.target_entity.strip().lower(),
-                self._find_entity_type(
-                    extraction,
-                    relationship.target_entity,
-                ),
+            target = self._find_entity(
+                entity_map,
+                relationship.target_entity,
             )
-
-            source = entity_map.get(source_key)
-            target = entity_map.get(target_key)
 
             if source is None or target is None:
                 continue
 
-            self._db.add(
-                EntityRelationship(
+            relationship_stmt = (
+                insert(EntityRelationship)
+                .values(
                     tenant_id=tenant_id,
                     source_entity_id=source.id,
                     target_entity_id=target.id,
@@ -97,19 +92,25 @@ class GraphService:
                     source_chunk_id=chunk_id,
                     confidence=relationship.confidence,
                 )
+                .on_conflict_do_nothing(
+                    constraint="uq_entity_relationship"
+                )
             )
 
+            db.execute(relationship_stmt)
+
     @staticmethod
-    def _find_entity_type(
-        extraction: GraphExtractionResult,
+    def _find_entity(
+        entity_map: dict[tuple[str, str], Entity],
         name: str,
-    ) -> str:
-        normalized = name.strip().lower()
+    ) -> Entity | None:
+        matches = [
+            entity
+            for (canonical_name, _), entity in entity_map.items()
+            if canonical_name == name.lower()
+        ]
 
-        for entity in extraction.entities:
-            if entity.name.strip().lower() == normalized:
-                return entity.entity_type
+        if not matches:
+            return None
 
-        raise ValueError(
-            f"Relationship references unknown entity: {name}"
-        )
+        return matches[0]

@@ -18,6 +18,10 @@ from packages.ingestion.parser_registry import ParserRegistry
 from packages.ingestion.storage import ObjectStorage
 from packages.ingestion.chunker import DocumentChunker
 from apps.worker.services.chunk_service import ChunkService
+from packages.llm.ollama_graph_extraction import OllamaGraphExtractor
+from packages.retrieval.graph_extraction import validate_extraction
+from packages.retrieval.graph_service import GraphService
+from apps.api.config import settings
 
 class IngestionService:
     def __init__(
@@ -75,23 +79,43 @@ class IngestionService:
                 filename=document.title,
             )
 
-
-            chunks = self._chunker.chunk(parsed)
-
-
-            persisted_chunks = (
-                self._chunk_service.replace_chunks(
-                    tenant_id=document.tenant_id,
-                    document_version_id=version.id,
-                    chunks=chunks,
-                )
+            chunked_document = self._chunker.chunk(
+                parsed
             )
 
+            chunks = self._chunk_service.replace_chunks(
+                tenant_id=document.tenant_id,
+                document_version_id=version.id,
+                chunks=chunked_document,
+            )
 
             self._embedding_service.embed_chunks(
                 tenant_id=document.tenant_id,
-                chunks=persisted_chunks,
+                chunks=chunks,
             )
+
+            graph_extractor = OllamaGraphExtractor(
+                base_url=settings.ollama_base_url,
+                model=settings.generation_model,
+            )
+
+            graph_service = GraphService()
+
+            for chunk in chunks:
+                extraction = graph_extractor.extract(
+                    chunk.text
+                )
+
+                extraction = validate_extraction(
+                    extraction
+                )
+
+                graph_service.persist_extraction(
+                    db=self._db,
+                    tenant_id=document.tenant_id,
+                    chunk_id=chunk.id,
+                    extraction=extraction,
+                )
 
             version.extracted_text = parsed.text
 

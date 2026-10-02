@@ -12,8 +12,11 @@ from apps.api.schemas.search import (
 from apps.api.config import settings
 from packages.llm.ollama_embeddings import OllamaEmbeddingProvider
 from packages.retrieval.hybrid_search import HybridSearchService
+from packages.retrieval.graph_search import GraphSearchService
+from packages.retrieval.lexical_search import LexicalSearchService
 from packages.retrieval.rrf import ReciprocalRankFusion
 from packages.retrieval.factory import get_reranker
+from packages.retrieval.vector_search import VectorSearchService
 
 router = APIRouter(
     prefix="/tenants/{tenant_id}/search",
@@ -36,12 +39,18 @@ def search(
     reranker = get_reranker()
 
     service = HybridSearchService(
-        db=db,
-        embedding_provider=provider,
+        vector_search=VectorSearchService(
+            db=db,
+            embedding_provider=provider,
+        ),
+        lexical_search=LexicalSearchService(db=db),
+        graph_search=GraphSearchService(),
         reranker=reranker,
+        rrf=ReciprocalRankFusion(),
     )
 
     results = service.search(
+        db=db,
         tenant_id=tenant_id,
         query=request.query,
         limit=request.limit,
