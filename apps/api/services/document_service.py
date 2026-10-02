@@ -1,7 +1,7 @@
 import hashlib
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from packages.domain.models import (
@@ -46,20 +46,41 @@ class DocumentService:
                 "An identical document version already exists"
             )
 
-        document = Document(
+        document = self._find_document(
             tenant_id=tenant_id,
             data_source_id=data_source_id,
-            title=filename,
-            mime_type=mime_type,
-            object_key="pending",
+            filename=filename,
         )
 
-        self._db.add(document)
-        self._db.flush()
+        if document is None:
+            document = Document(
+                tenant_id=tenant_id,
+                data_source_id=data_source_id,
+                title=filename,
+                mime_type=mime_type,
+                object_key="pending",
+            )
+
+            self._db.add(document)
+            self._db.flush()
+
+            version_number = 1
+        else:
+            version_number = self._db.scalar(
+                select(
+                    func.coalesce(
+                        func.max(DocumentVersion.version_number),
+                        0,
+                    )
+                ).where(
+                    DocumentVersion.document_id == document.id
+                )
+            ) + 1
+            document.mime_type = mime_type
 
         version = DocumentVersion(
             document_id=document.id,
-            version_number=1,
+            version_number=version_number,
             checksum=checksum,
         )
 
@@ -122,6 +143,20 @@ class DocumentService:
                 Document.data_source_id == data_source_id,
                 DocumentVersion.checksum == checksum,
             )
+        )
+
+        return self._db.execute(statement).scalar_one_or_none()
+
+    def _find_document(
+        self,
+        tenant_id: UUID,
+        data_source_id: UUID,
+        filename: str,
+    ) -> Document | None:
+        statement = select(Document).where(
+            Document.tenant_id == tenant_id,
+            Document.data_source_id == data_source_id,
+            Document.title == filename,
         )
 
         return self._db.execute(statement).scalar_one_or_none()

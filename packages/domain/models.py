@@ -302,6 +302,30 @@ class IngestionJob(Base):
         default=IngestionStatus.PENDING,
     )
 
+    attempt_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+
+    max_attempts: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=3,
+        server_default="3",
+    )
+
+    claimed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    last_error: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    
     error_message: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
