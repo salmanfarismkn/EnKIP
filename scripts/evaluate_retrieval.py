@@ -11,6 +11,7 @@ from packages.llm.ollama_embeddings import OllamaEmbeddingProvider
 from packages.retrieval.evaluation import (
     average_metrics,
     evaluate_ranked_results,
+    validate_evaluation_cases,
 )
 from packages.retrieval.factory import get_reranker
 from packages.retrieval.graph_search import GraphSearchService
@@ -65,9 +66,12 @@ def main() -> None:
         EVALUATION_FILE.read_text(encoding="utf-8")
     )
 
-    if not isinstance(cases, list) or not cases:
+    validation_errors = validate_evaluation_cases(cases)
+    if validation_errors:
+        joined = "\n- ".join(validation_errors)
         raise ValueError(
-            "Evaluation dataset must contain at least one case"
+            "Evaluation dataset validation failed:\n- "
+            f"{joined}"
         )
 
     reranker = get_reranker()

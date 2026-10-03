@@ -16,6 +16,168 @@
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
+  },
+  {
+    "case_id": "banking-003",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "Why are the banks building a data warehouse?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-004",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "For what decision-making need is the warehouse intended?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-005",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "What business problem is the consortium trying to solve?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-006",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "What are the banks trying to improve with the warehouse?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-007",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "Which organizations want to create a warehouse?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-008",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "What type of institution is pursuing this warehouse initiative?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-009",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "What is the project intended to support?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-010",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "Why is a warehouse valuable in the loan context?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-011",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "Which decisions are the banks hoping to improve?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-012",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "For what type of planning is the warehouse being designed?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-013",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "What does the consortium want to do with their loan schemes?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-014",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "What is the warehouse expected to help the banks analyze?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-015",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "What kind of operational challenge are the banks addressing?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-016",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "Which financial actors want this data warehouse?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-017",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "How do the banks intend to use a data warehouse?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-018",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "What strategic objective motivates the warehouse effort?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-019",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "What is the main goal of the warehouse buildout?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
+  },
+  {
+    "case_id": "banking-020",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "What are the banks trying to enable through this warehouse?",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ]
   }
 ]
 

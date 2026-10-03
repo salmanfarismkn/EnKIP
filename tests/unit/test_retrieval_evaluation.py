@@ -1,9 +1,13 @@
 
+import json
+from pathlib import Path
+
 import pytest
 
 from packages.retrieval.evaluation import (
     average_metrics,
     evaluate_ranked_results,
+    validate_evaluation_cases,
 )
 
 
@@ -60,3 +64,35 @@ def test_average_metrics():
     assert averages["recall_at_k"] == 0.5
     assert averages["mrr_at_k"] == 0.5
     assert averages["question_count"] == 2.0
+
+
+def test_validate_evaluation_cases_accepts_well_formed_dataset() -> None:
+    cases_path = (
+        Path(__file__).resolve().parents[1]
+        / "evaluation"
+        / "retrieval_cases.json"
+    )
+    cases = json.loads(cases_path.read_text(encoding="utf-8"))
+
+    errors = validate_evaluation_cases(cases)
+
+    assert not errors
+    assert len(cases) >= 20
+
+
+def test_validate_evaluation_cases_rejects_invalid_case() -> None:
+    cases = [
+        {
+            "case_id": "banking-001",
+            "tenant_id": "not-a-uuid",
+            "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+            "query": "",
+            "expected_document_ids": [],
+        }
+    ]
+
+    errors = validate_evaluation_cases(cases)
+
+    assert any("tenant_id" in error.lower() for error in errors)
+    assert any("query" in error.lower() for error in errors)
+    assert any("expected_document_ids" in error.lower() for error in errors)
