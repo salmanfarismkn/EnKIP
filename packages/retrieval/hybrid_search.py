@@ -34,6 +34,7 @@ class HybridSearchService:
         db: Session,
         tenant_id: UUID,
         query: str,
+        user_id: UUID | None = None,
         limit: int = 10,
     ) -> list[dict]:
         if not query.strip():
@@ -45,13 +46,17 @@ class HybridSearchService:
         candidate_limit = max(limit * 3, 20)
 
         semantic_results = self._vector_search.search(
+            db=db,
             tenant_id=tenant_id,
+            user_id=user_id,
             query=query,
             limit=candidate_limit,
         )
 
         lexical_results = self._lexical_search.search(
+            db=db,
             tenant_id=tenant_id,
+            user_id=user_id,
             query=query,
             limit=candidate_limit,
         )
@@ -59,6 +64,7 @@ class HybridSearchService:
         graph_results = self._graph_search.search(
             db=db,
             tenant_id=tenant_id,
+            user_id=user_id,
             query=query,
             limit=candidate_limit,
         )

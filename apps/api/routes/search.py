@@ -28,6 +28,7 @@ router = APIRouter(
 def search(
     tenant_id: UUID,
     request: SearchRequest,
+    user_id: UUID | None = None,
     db: Session = Depends(get_db),
 ) -> SearchResponse:
     provider = OllamaEmbeddingProvider(
@@ -52,6 +53,7 @@ def search(
     results = service.search(
         db=db,
         tenant_id=tenant_id,
+        user_id=user_id,
         query=request.query,
         limit=request.limit,
     )

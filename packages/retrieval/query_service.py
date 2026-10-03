@@ -55,6 +55,7 @@ class QueryService:
         self,
         tenant_id: UUID,
         query: str,
+        user_id: UUID | None = None,
         evidence_limit: int = 5,
     ) -> GeneratedAnswer:
         
@@ -63,6 +64,7 @@ class QueryService:
         candidates = self._retrieve_for_subqueries(
             tenant_id,
             decomposed.sub_queries,
+            user_id,
         )
 
         candidates = self._select_candidates(
@@ -110,6 +112,7 @@ class QueryService:
         self,
         tenant_id: UUID,
         sub_queries: list[SubQuery],
+        user_id: UUID | None = None,
     ) -> list[dict]:
         candidates: list[dict] = []
 
@@ -117,6 +120,7 @@ class QueryService:
             results = self._hybrid_search.search(
                 db=self._db,
                 tenant_id=tenant_id,
+                user_id=user_id,
                 query=sub_query.query,
                 limit=20,
             )

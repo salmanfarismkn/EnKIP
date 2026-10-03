@@ -17,7 +17,9 @@ def test_empty_query_raises_value_error() -> None:
         match="Query must not be empty",
     ):
         service.search(
+            db=None,
             tenant_id=uuid4(),
+            user_id=uuid4(),
             query="",
             limit=10,
         )
@@ -31,7 +33,9 @@ def test_whitespace_query_raises_value_error() -> None:
         match="Query must not be empty",
     ):
         service.search(
+            db=None,
             tenant_id=uuid4(),
+            user_id=uuid4(),
             query="   ",
             limit=10,
         )
@@ -45,7 +49,9 @@ def test_zero_limit_raises_value_error() -> None:
         match="Limit must be positive",
     ):
         service.search(
+            db=None,
             tenant_id=uuid4(),
+            user_id=uuid4(),
             query="redis",
             limit=0,
         )
@@ -59,7 +65,9 @@ def test_negative_limit_raises_value_error() -> None:
         match="Limit must be positive",
     ):
         service.search(
+            db=None,
             tenant_id=uuid4(),
+            user_id=uuid4(),
             query="redis",
             limit=-1,
         )

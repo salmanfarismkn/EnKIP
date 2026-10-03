@@ -127,22 +127,45 @@ class IngestionService:
             job.completed_at = datetime.now(timezone.utc)
             job.error_message = None
 
+            if hasattr(job, "claimed_at"):
+                job.claimed_at = None
+
             self._db.commit()
 
         except Exception as exc:
             self._db.rollback()
 
+            job = self._get_job(job_id)
+
+            version = self._get_version(
+                job.document_version_id
+            )
+
             version.processing_status = (
                 DocumentProcessingStatus.FAILED
             )
 
-            job.status = IngestionStatus.FAILED
             job.completed_at = datetime.now(timezone.utc)
             job.error_message = str(exc)
+
+            if hasattr(job, "claimed_at"):
+                job.claimed_at = None
+
+            if (
+                hasattr(job, "attempt_count")
+                and hasattr(job, "max_attempts")
+            ):
+                if job.attempt_count >= job.max_attempts:
+                    job.status = IngestionStatus.FAILED
+                else:
+                    job.status = IngestionStatus.PENDING
+            else:
+                job.status = IngestionStatus.FAILED
 
             self._db.commit()
 
             raise
+
 
 
     def _get_job(self, job_id: UUID) -> IngestionJob:

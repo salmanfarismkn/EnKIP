@@ -6,21 +6,32 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from packages.domain.models import (
+    DataSource,
     Document,
     DocumentChunk,
     DocumentVersion,
     Entity,
     EntityRelationship,
 )
+from packages.permissions.service import PermissionService
 
 
 class GraphSearchService:
+    def __init__(
+        self,
+        permission_service: PermissionService | None = None,
+    ) -> None:
+        self._permission_service = (
+            permission_service
+            or PermissionService()
+        )
+
     def find_entities(
         self,
         db: Session,
         tenant_id: UUID,
         query: str,
-    ) -> list[Entity]:
+    ) -> list:
         if not query.strip():
             raise ValueError("Query must not be empty")
 
@@ -52,7 +63,7 @@ class GraphSearchService:
         db: Session,
         tenant_id: UUID,
         entity_ids: list[UUID],
-    ) -> list[Entity]:
+    ) -> list:
         if not entity_ids:
             return []
 
@@ -75,14 +86,16 @@ class GraphSearchService:
             .limit(30)
         )
 
-        return list(db.scalars(stmt).unique().all())
+        return list(
+            db.scalars(stmt).unique().all()
+        )
 
     def relationship_chunks(
         self,
         db: Session,
         tenant_id: UUID,
         entity_ids: list[UUID],
-    ) -> list[DocumentChunk]:
+    ) -> list:
         if not entity_ids:
             return []
 
@@ -93,25 +106,53 @@ class GraphSearchService:
                 EntityRelationship.source_chunk_id
                 == DocumentChunk.id,
             )
-            .where(DocumentChunk.tenant_id == tenant_id)
+            .where(
+                DocumentChunk.tenant_id
+                == tenant_id
+            )
             .where(
                 or_(
-                    EntityRelationship.source_entity_id.in_(entity_ids),
-                    EntityRelationship.target_entity_id.in_(entity_ids),
+                    EntityRelationship.source_entity_id.in_(
+                        entity_ids
+                    ),
+                    EntityRelationship.target_entity_id.in_(
+                        entity_ids
+                    ),
                 )
             )
             .limit(30)
         )
 
-        return list(db.scalars(stmt).unique().all())
+        return list(
+            db.scalars(stmt).unique().all()
+        )
 
     def search(
         self,
         db: Session,
         tenant_id: UUID,
         query: str,
+        user_id: UUID | None = None,
         limit: int = 20,
-    ) -> list[dict]:
+    ) -> list:
+        if not query.strip():
+            raise ValueError("Query must not be empty")
+
+        if limit <= 0:
+            raise ValueError("Limit must be positive")
+
+        accessible_sources = (
+            self._permission_service
+            .get_accessible_data_source_ids(
+                db=db,
+                tenant_id=tenant_id,
+                user_id=user_id,
+            )
+        )
+
+        if not accessible_sources:
+            return []
+
         entities = self.find_entities(
             db=db,
             tenant_id=tenant_id,
@@ -121,18 +162,26 @@ class GraphSearchService:
         if not entities:
             return []
 
-        entity_ids = [entity.id for entity in entities]
+        entity_ids = [
+            entity.id
+            for entity in entities
+        ]
 
         relationships = list(
             db.scalars(
                 select(EntityRelationship)
                 .where(
-                    EntityRelationship.tenant_id == tenant_id
+                    EntityRelationship.tenant_id
+                    == tenant_id
                 )
                 .where(
                     or_(
-                        EntityRelationship.source_entity_id.in_(entity_ids),
-                        EntityRelationship.target_entity_id.in_(entity_ids),
+                        EntityRelationship.source_entity_id.in_(
+                            entity_ids
+                        ),
+                        EntityRelationship.target_entity_id.in_(
+                            entity_ids
+                        ),
                     )
                 )
                 .limit(limit)
@@ -163,17 +212,31 @@ class GraphSearchService:
                 Document.id
                 == DocumentVersion.document_id,
             )
+            .join(
+                DataSource,
+                DataSource.id
+                == Document.data_source_id,
+            )
             .where(
-                DocumentChunk.tenant_id == tenant_id
+                DocumentChunk.tenant_id
+                == tenant_id
             )
             .where(
                 DocumentChunk.id.in_(chunk_ids)
+            )
+            .where(
+                DataSource.id.in_(
+                    accessible_sources
+                )
             )
         )
 
         rows = db.execute(stmt).all()
 
-        relationship_by_chunk: dict[UUID, list[str]] = {}
+        relationship_by_chunk: dict[
+            UUID,
+            list[str],
+        ] = {}
 
         for relationship in relationships:
             relationship_by_chunk.setdefault(
@@ -194,11 +257,12 @@ class GraphSearchService:
                     "text": chunk.text,
                     "section_title": chunk.section_title,
                     "page_number": chunk.page_number,
-                    "graph_relationships": relationship_by_chunk.get(
-                        chunk.id,
-                        [],
+                    "graph_relationships": (
+                        relationship_by_chunk.get(
+                            chunk.id,
+                            [],
+                        )
                     ),
-                    "score": 1.0,
                 }
             )
 

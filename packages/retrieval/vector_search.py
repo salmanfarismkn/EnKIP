@@ -10,33 +10,54 @@ from packages.domain.models import (
     DocumentVersion,
 )
 from packages.llm.embeddings import EmbeddingProvider
-
+from packages.domain.models import DataSource
+from packages.permissions.service import PermissionService
 
 class VectorSearchService:
     def __init__(
         self,
         db: Session,
         embedding_provider: EmbeddingProvider,
+        permission_service: PermissionService | None = None,
     ) -> None:
         self._db = db
         self._embedding_provider = embedding_provider
+        self._permission_service = permission_service or PermissionService()
 
     def search(
         self,
+        db: Session,
         tenant_id: UUID,
         query: str,
+        user_id: UUID | None = None,
         limit: int = 10,
     ) -> list[dict]:
-        if not query.strip():
+        if not query or not query.strip():
             raise ValueError("Query must not be empty")
 
         if limit <= 0:
             raise ValueError("Limit must be positive")
 
-        query_embedding = self._embedding_provider.embed(query)
+        accessible_sources = (
+            self._permission_service
+            .get_accessible_data_source_ids(
+                db=db,
+                tenant_id=tenant_id,
+                user_id=user_id,
+            )
+        )
 
-        distance = ChunkEmbedding.embedding.cosine_distance(
-            query_embedding.vector
+        if not accessible_sources:
+            return []
+
+        query_embedding = self._embedding_provider.embed(
+            query
+        )
+
+        distance = (
+            ChunkEmbedding.embedding.cosine_distance(
+                query_embedding.vector
+            )
         )
 
         statement = (
@@ -62,6 +83,10 @@ class VectorSearchService:
                 Document,
                 Document.id == DocumentVersion.document_id,
             )
+            .join(
+                DataSource,
+                DataSource.id == Document.data_source_id,
+            )
             .where(
                 ChunkEmbedding.tenant_id == tenant_id,
                 DocumentChunk.tenant_id == tenant_id,
@@ -71,12 +96,13 @@ class VectorSearchService:
                 == self._embedding_provider.model_version,
                 ChunkEmbedding.dimensions
                 == self._embedding_provider.dimensions,
+                DataSource.id.in_(accessible_sources),
             )
             .order_by(distance)
             .limit(limit)
         )
 
-        rows = self._db.execute(statement).all()
+        rows = db.execute(statement).all()
 
         return [
             {

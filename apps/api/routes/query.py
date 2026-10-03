@@ -33,6 +33,7 @@ router = APIRouter(
 def query(
     tenant_id: UUID,
     request: QueryRequest,
+    user_id: UUID | None = None,
     db: Session = Depends(get_db),
 ) -> QueryResponse:
     embedding_provider = OllamaEmbeddingProvider(
@@ -64,6 +65,7 @@ def query(
 
     result = service.answer(
         tenant_id=tenant_id,
+        user_id=user_id,
         query=request.query,
         evidence_limit=request.evidence_limit,
     )

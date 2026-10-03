@@ -302,6 +302,30 @@ class IngestionJob(Base):
         default=IngestionStatus.PENDING,
     )
 
+    attempt_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+
+    max_attempts: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=3,
+        server_default="3",
+    )
+
+    claimed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    last_error: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    
     error_message: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
@@ -594,5 +618,46 @@ class EntityRelationship(Base):
             "relationship_type",
             "source_chunk_id",
             name="uq_entity_relationship",
+        ),
+    )
+
+class DataSourceAccess(Base):
+    __tablename__ = "data_source_access"
+
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        default=uuid4,
+    )
+
+    tenant_id: Mapped[UUID] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    data_source_id: Mapped[UUID] = mapped_column(
+        ForeignKey("data_sources.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id",
+            "user_id",
+            "data_source_id",
+            name="uq_data_source_access",
         ),
     )
