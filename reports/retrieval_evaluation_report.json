@@ -1,0 +1,133 @@
+{
+  "k": 5,
+  "case_count": 2,
+  "metrics_note": "Macro-averaged document-level Recall@K and MRR@K. Results depend on the manually labeled evaluation set.",
+  "aggregate": {
+    "vector": {
+      "recall_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "question_count": 2.0
+    },
+    "lexical": {
+      "recall_at_k": 0.5,
+      "mrr_at_k": 0.5,
+      "question_count": 2.0
+    },
+    "hybrid": {
+      "recall_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "question_count": 2.0
+    },
+    "graph_assisted_hybrid": {
+      "recall_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "question_count": 2.0
+    }
+  },
+  "cases": [
+    {
+      "case_id": "banking-001",
+      "query": "Who wants to develop a data warehouse?",
+      "expected_document_ids": [
+        "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+      ],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          }
+        },
+        "lexical": {
+          "retrieved_document_ids": [
+            "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          }
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          }
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          }
+        }
+      }
+    },
+    {
+      "case_id": "banking-002",
+      "query": "What is the purpose of the data warehouse?",
+      "expected_document_ids": [
+        "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+      ],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          }
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          }
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          }
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          }
+        }
+      }
+    }
+  ]
+}
