@@ -1,0 +1,547 @@
+{
+  "experiment": "lexical-development-diagnostics-v1",
+  "scope_note": "This report is independent of the baseline and held-out reports. It does not modify either benchmark or production retrieval code.",
+  "pipeline_configuration": {
+    "postgres_default_text_search_config": "pg_catalog.english",
+    "query_and_index_config": "english",
+    "insert_update_trigger_present": true,
+    "insert_update_trigger_enabled": true,
+    "insert_update_trigger_definition": "CREATE TRIGGER document_chunks_search_vector_trigger BEFORE INSERT OR UPDATE OF text ON public.document_chunks FOR EACH ROW EXECUTE FUNCTION document_chunks_search_vector_update()",
+    "search_vector_gin_index_present": true,
+    "lexical_join_path": "documents -> document_versions -> document_chunks, with tenant and accessible data_source filters",
+    "diagnostic_sql_read_only": true
+  },
+  "baseline_success_comparison": {
+    "case_id": "banking-001",
+    "case_kind": "baseline",
+    "query": "consortium banks data warehouse loan schemes",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "expected_document_ids": [
+      "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
+    ],
+    "expected_access": true,
+    "query_tsquery": "'consortium' & 'bank' & 'data' & 'warehous' & 'loan' & 'scheme'",
+    "expected_documents": [
+      {
+        "document_id": "27bf0f39-3c4c-4b25-88be-001f4c1351d0",
+        "exists_in_tenant": true,
+        "accessible_to_user": true,
+        "chunk_count": 1,
+        "non_null_vector_chunks": 1,
+        "nonempty_vector_chunks": 1,
+        "direct_matching_chunks": 1
+      }
+    ],
+    "service_returned_expected": [
+      true
+    ],
+    "service_result_count": 1,
+    "diagnosis": "expected document retrieved"
+  },
+  "development_case_count": 10,
+  "development_cases": [
+    {
+      "case_id": "lexdev-exact-001",
+      "case_kind": "exact_terms",
+      "query": "helium lattice annealing",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000001"
+      ],
+      "expected_access": true,
+      "query_tsquery": "'helium' & 'lattic' & 'anneal'",
+      "expected_documents": [
+        {
+          "document_id": "f4000000-0000-4000-8000-000000000001",
+          "exists_in_tenant": true,
+          "accessible_to_user": true,
+          "chunk_count": 2,
+          "non_null_vector_chunks": 2,
+          "nonempty_vector_chunks": 2,
+          "direct_matching_chunks": 1,
+          "indexed_lexemes": [
+            "850",
+            "anneal",
+            "boundari",
+            "celsius",
+            "chang",
+            "cycl",
+            "degre",
+            "grain",
+            "helium",
+            "lattic",
+            "measur",
+            "phase",
+            "record",
+            "second",
+            "shift",
+            "size",
+            "stabil",
+            "stage",
+            "thermal",
+            "zircon"
+          ]
+        }
+      ],
+      "service_returned_expected": [
+        true
+      ],
+      "service_result_count": 1,
+      "diagnosis": "expected document retrieved"
+    },
+    {
+      "case_id": "lexdev-stopword-001",
+      "case_kind": "english_stopword_removal",
+      "query": "the zircon grain",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000001"
+      ],
+      "expected_access": true,
+      "query_tsquery": "'zircon' & 'grain'",
+      "expected_documents": [
+        {
+          "document_id": "f4000000-0000-4000-8000-000000000001",
+          "exists_in_tenant": true,
+          "accessible_to_user": true,
+          "chunk_count": 2,
+          "non_null_vector_chunks": 2,
+          "nonempty_vector_chunks": 2,
+          "direct_matching_chunks": 1,
+          "indexed_lexemes": [
+            "850",
+            "anneal",
+            "boundari",
+            "celsius",
+            "chang",
+            "cycl",
+            "degre",
+            "grain",
+            "helium",
+            "lattic",
+            "measur",
+            "phase",
+            "record",
+            "second",
+            "shift",
+            "size",
+            "stabil",
+            "stage",
+            "thermal",
+            "zircon"
+          ]
+        }
+      ],
+      "service_returned_expected": [
+        true
+      ],
+      "service_result_count": 1,
+      "diagnosis": "expected document retrieved"
+    },
+    {
+      "case_id": "lexdev-paraphrase-001",
+      "case_kind": "synonym_paraphrase",
+      "query": "heat treatment stabilizes crystalline grain boundaries",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000001"
+      ],
+      "expected_access": true,
+      "query_tsquery": "'heat' & 'treatment' & 'stabil' & 'crystallin' & 'grain' & 'boundari'",
+      "expected_documents": [
+        {
+          "document_id": "f4000000-0000-4000-8000-000000000001",
+          "exists_in_tenant": true,
+          "accessible_to_user": true,
+          "chunk_count": 2,
+          "non_null_vector_chunks": 2,
+          "nonempty_vector_chunks": 2,
+          "direct_matching_chunks": 0,
+          "indexed_lexemes": [
+            "850",
+            "anneal",
+            "boundari",
+            "celsius",
+            "chang",
+            "cycl",
+            "degre",
+            "grain",
+            "helium",
+            "lattic",
+            "measur",
+            "phase",
+            "record",
+            "second",
+            "shift",
+            "size",
+            "stabil",
+            "stage",
+            "thermal",
+            "zircon"
+          ]
+        }
+      ],
+      "service_returned_expected": [
+        false
+      ],
+      "service_result_count": 0,
+      "diagnosis": "authorized lexical miss"
+    },
+    {
+      "case_id": "lexdev-identifier-001",
+      "case_kind": "technical_identifier",
+      "query": "PX-410B",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000002"
+      ],
+      "expected_access": true,
+      "query_tsquery": "'px-410b' <-> 'px' <-> '410b'",
+      "expected_documents": [
+        {
+          "document_id": "f4000000-0000-4000-8000-000000000002",
+          "exists_in_tenant": true,
+          "accessible_to_user": true,
+          "chunk_count": 1,
+          "non_null_vector_chunks": 1,
+          "nonempty_vector_chunks": 1,
+          "direct_matching_chunks": 1,
+          "indexed_lexemes": [
+            "-2",
+            "410b",
+            "7a",
+            "96hz",
+            "calibr",
+            "ceram",
+            "channel",
+            "clk",
+            "clock",
+            "control",
+            "emit",
+            "fault",
+            "fuse",
+            "log",
+            "px",
+            "px-410b",
+            "replac",
+            "restart",
+            "silicon",
+            "state",
+            "telemetri",
+            "wafer"
+          ]
+        }
+      ],
+      "service_returned_expected": [
+        true
+      ],
+      "service_result_count": 1,
+      "diagnosis": "expected document retrieved"
+    },
+    {
+      "case_id": "lexdev-identifier-002",
+      "case_kind": "punctuated_identifier",
+      "query": "7A-2",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000002"
+      ],
+      "expected_access": true,
+      "query_tsquery": "'7a' <-> '-2'",
+      "expected_documents": [
+        {
+          "document_id": "f4000000-0000-4000-8000-000000000002",
+          "exists_in_tenant": true,
+          "accessible_to_user": true,
+          "chunk_count": 1,
+          "non_null_vector_chunks": 1,
+          "nonempty_vector_chunks": 1,
+          "direct_matching_chunks": 1,
+          "indexed_lexemes": [
+            "-2",
+            "410b",
+            "7a",
+            "96hz",
+            "calibr",
+            "ceram",
+            "channel",
+            "clk",
+            "clock",
+            "control",
+            "emit",
+            "fault",
+            "fuse",
+            "log",
+            "px",
+            "px-410b",
+            "replac",
+            "restart",
+            "silicon",
+            "state",
+            "telemetri",
+            "wafer"
+          ]
+        }
+      ],
+      "service_returned_expected": [
+        true
+      ],
+      "service_result_count": 1,
+      "diagnosis": "expected document retrieved"
+    },
+    {
+      "case_id": "lexdev-identifier-003",
+      "case_kind": "underscore_mixed_case_identifier",
+      "query": "CLK_96Hz",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000002"
+      ],
+      "expected_access": true,
+      "query_tsquery": "'clk' <-> '96hz'",
+      "expected_documents": [
+        {
+          "document_id": "f4000000-0000-4000-8000-000000000002",
+          "exists_in_tenant": true,
+          "accessible_to_user": true,
+          "chunk_count": 1,
+          "non_null_vector_chunks": 1,
+          "nonempty_vector_chunks": 1,
+          "direct_matching_chunks": 1,
+          "indexed_lexemes": [
+            "-2",
+            "410b",
+            "7a",
+            "96hz",
+            "calibr",
+            "ceram",
+            "channel",
+            "clk",
+            "clock",
+            "control",
+            "emit",
+            "fault",
+            "fuse",
+            "log",
+            "px",
+            "px-410b",
+            "replac",
+            "restart",
+            "silicon",
+            "state",
+            "telemetri",
+            "wafer"
+          ]
+        }
+      ],
+      "service_returned_expected": [
+        true
+      ],
+      "service_result_count": 1,
+      "diagnosis": "expected document retrieved"
+    },
+    {
+      "case_id": "lexdev-multichunk-same-001",
+      "case_kind": "multi_chunk_same_chunk_terms",
+      "query": "quartz feldspar assay boron",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000003"
+      ],
+      "expected_access": true,
+      "query_tsquery": "'quartz' & 'feldspar' & 'assay' & 'boron'",
+      "expected_documents": [
+        {
+          "document_id": "f4000000-0000-4000-8000-000000000003",
+          "exists_in_tenant": true,
+          "accessible_to_user": true,
+          "chunk_count": 2,
+          "non_null_vector_chunks": 2,
+          "nonempty_vector_chunks": 2,
+          "direct_matching_chunks": 1,
+          "indexed_lexemes": [
+            "assay",
+            "beneath",
+            "boron",
+            "calcit",
+            "catalogu",
+            "cut",
+            "describ",
+            "eastern",
+            "feldspar",
+            "field",
+            "locat",
+            "lumin",
+            "measur",
+            "note",
+            "pale",
+            "quartz",
+            "ridg",
+            "sampl",
+            "seal",
+            "surfac",
+            "trace",
+            "western"
+          ]
+        }
+      ],
+      "service_returned_expected": [
+        true
+      ],
+      "service_result_count": 1,
+      "diagnosis": "expected document retrieved"
+    },
+    {
+      "case_id": "lexdev-multichunk-split-001",
+      "case_kind": "multi_chunk_split_terms",
+      "query": "luminous quartz assay",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000003"
+      ],
+      "expected_access": true,
+      "query_tsquery": "'lumin' & 'quartz' & 'assay'",
+      "expected_documents": [
+        {
+          "document_id": "f4000000-0000-4000-8000-000000000003",
+          "exists_in_tenant": true,
+          "accessible_to_user": true,
+          "chunk_count": 2,
+          "non_null_vector_chunks": 2,
+          "nonempty_vector_chunks": 2,
+          "direct_matching_chunks": 0,
+          "indexed_lexemes": [
+            "assay",
+            "beneath",
+            "boron",
+            "calcit",
+            "catalogu",
+            "cut",
+            "describ",
+            "eastern",
+            "feldspar",
+            "field",
+            "locat",
+            "lumin",
+            "measur",
+            "note",
+            "pale",
+            "quartz",
+            "ridg",
+            "sampl",
+            "seal",
+            "surfac",
+            "trace",
+            "western"
+          ]
+        }
+      ],
+      "service_returned_expected": [
+        false
+      ],
+      "service_result_count": 0,
+      "diagnosis": "authorized lexical miss"
+    },
+    {
+      "case_id": "lexdev-unauthorized-001",
+      "case_kind": "unauthorized_relevant_document",
+      "query": "umbra payroll ciphertext audit",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000004"
+      ],
+      "expected_access": false,
+      "query_tsquery": "'umbra' & 'payrol' & 'ciphertext' & 'audit'",
+      "expected_documents": [
+        {
+          "document_id": "f4000000-0000-4000-8000-000000000004",
+          "exists_in_tenant": true,
+          "accessible_to_user": false,
+          "chunk_count": 1,
+          "non_null_vector_chunks": 1,
+          "nonempty_vector_chunks": 1,
+          "direct_matching_chunks": 1,
+          "indexed_lexemes": [
+            "-88",
+            "access",
+            "audit",
+            "ciphertext",
+            "ledger",
+            "marker",
+            "materi",
+            "payrol",
+            "qz",
+            "restrict",
+            "synthet",
+            "test",
+            "umbra",
+            "use",
+            "verifi"
+          ]
+        }
+      ],
+      "service_returned_expected": [
+        false
+      ],
+      "service_result_count": 0,
+      "diagnosis": "unauthorized expected document withheld"
+    },
+    {
+      "case_id": "lexdev-authorized-restricted-001",
+      "case_kind": "authorized_restricted_document",
+      "query": "umbra payroll ciphertext audit",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000002",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000004"
+      ],
+      "expected_access": true,
+      "query_tsquery": "'umbra' & 'payrol' & 'ciphertext' & 'audit'",
+      "expected_documents": [
+        {
+          "document_id": "f4000000-0000-4000-8000-000000000004",
+          "exists_in_tenant": true,
+          "accessible_to_user": true,
+          "chunk_count": 1,
+          "non_null_vector_chunks": 1,
+          "nonempty_vector_chunks": 1,
+          "direct_matching_chunks": 1,
+          "indexed_lexemes": [
+            "-88",
+            "access",
+            "audit",
+            "ciphertext",
+            "ledger",
+            "marker",
+            "materi",
+            "payrol",
+            "qz",
+            "restrict",
+            "synthet",
+            "test",
+            "umbra",
+            "use",
+            "verifi"
+          ]
+        }
+      ],
+      "service_returned_expected": [
+        true
+      ],
+      "service_result_count": 1,
+      "diagnosis": "expected document retrieved"
+    }
+  ],
+  "synthetic_cleanup_verified": true,
+  "synthetic_document_count": 4
+}

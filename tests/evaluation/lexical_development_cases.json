@@ -1,0 +1,92 @@
+[
+  {
+    "case_id": "lexdev-exact-001",
+    "case_kind": "exact_terms",
+    "tenant_id": "f1000000-0000-4000-8000-000000000001",
+    "user_id": "f2000000-0000-4000-8000-000000000001",
+    "query": "helium lattice annealing",
+    "expected_document_ids": ["f4000000-0000-4000-8000-000000000001"],
+    "expected_access": true
+  },
+  {
+    "case_id": "lexdev-stopword-001",
+    "case_kind": "english_stopword_removal",
+    "tenant_id": "f1000000-0000-4000-8000-000000000001",
+    "user_id": "f2000000-0000-4000-8000-000000000001",
+    "query": "the zircon grain",
+    "expected_document_ids": ["f4000000-0000-4000-8000-000000000001"],
+    "expected_access": true
+  },
+  {
+    "case_id": "lexdev-paraphrase-001",
+    "case_kind": "synonym_paraphrase",
+    "tenant_id": "f1000000-0000-4000-8000-000000000001",
+    "user_id": "f2000000-0000-4000-8000-000000000001",
+    "query": "heat treatment stabilizes crystalline grain boundaries",
+    "expected_document_ids": ["f4000000-0000-4000-8000-000000000001"],
+    "expected_access": true
+  },
+  {
+    "case_id": "lexdev-identifier-001",
+    "case_kind": "technical_identifier",
+    "tenant_id": "f1000000-0000-4000-8000-000000000001",
+    "user_id": "f2000000-0000-4000-8000-000000000001",
+    "query": "PX-410B",
+    "expected_document_ids": ["f4000000-0000-4000-8000-000000000002"],
+    "expected_access": true
+  },
+  {
+    "case_id": "lexdev-identifier-002",
+    "case_kind": "punctuated_identifier",
+    "tenant_id": "f1000000-0000-4000-8000-000000000001",
+    "user_id": "f2000000-0000-4000-8000-000000000001",
+    "query": "7A-2",
+    "expected_document_ids": ["f4000000-0000-4000-8000-000000000002"],
+    "expected_access": true
+  },
+  {
+    "case_id": "lexdev-identifier-003",
+    "case_kind": "underscore_mixed_case_identifier",
+    "tenant_id": "f1000000-0000-4000-8000-000000000001",
+    "user_id": "f2000000-0000-4000-8000-000000000001",
+    "query": "CLK_96Hz",
+    "expected_document_ids": ["f4000000-0000-4000-8000-000000000002"],
+    "expected_access": true
+  },
+  {
+    "case_id": "lexdev-multichunk-same-001",
+    "case_kind": "multi_chunk_same_chunk_terms",
+    "tenant_id": "f1000000-0000-4000-8000-000000000001",
+    "user_id": "f2000000-0000-4000-8000-000000000001",
+    "query": "quartz feldspar assay boron",
+    "expected_document_ids": ["f4000000-0000-4000-8000-000000000003"],
+    "expected_access": true
+  },
+  {
+    "case_id": "lexdev-multichunk-split-001",
+    "case_kind": "multi_chunk_split_terms",
+    "tenant_id": "f1000000-0000-4000-8000-000000000001",
+    "user_id": "f2000000-0000-4000-8000-000000000001",
+    "query": "luminous quartz assay",
+    "expected_document_ids": ["f4000000-0000-4000-8000-000000000003"],
+    "expected_access": true
+  },
+  {
+    "case_id": "lexdev-unauthorized-001",
+    "case_kind": "unauthorized_relevant_document",
+    "tenant_id": "f1000000-0000-4000-8000-000000000001",
+    "user_id": "f2000000-0000-4000-8000-000000000001",
+    "query": "umbra payroll ciphertext audit",
+    "expected_document_ids": ["f4000000-0000-4000-8000-000000000004"],
+    "expected_access": false
+  },
+  {
+    "case_id": "lexdev-authorized-restricted-001",
+    "case_kind": "authorized_restricted_document",
+    "tenant_id": "f1000000-0000-4000-8000-000000000001",
+    "user_id": "f2000000-0000-4000-8000-000000000002",
+    "query": "umbra payroll ciphertext audit",
+    "expected_document_ids": ["f4000000-0000-4000-8000-000000000004"],
+    "expected_access": true
+  }
+]

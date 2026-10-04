@@ -1,0 +1,82 @@
+[
+  {
+    "case_id": "heldout-001",
+    "tenant_id": "e1000000-0000-4000-8000-000000000001",
+    "user_id": "e2000000-0000-4000-8000-000000000001",
+    "query": "When should engineers examine the tidal rotor blades at the Aurelia array?",
+    "expected_document_ids": ["e4000000-0000-4000-8000-000000000001"],
+    "forbidden_document_ids": ["e4000000-0000-4000-8000-000000000009"]
+  },
+  {
+    "case_id": "heldout-002",
+    "tenant_id": "e1000000-0000-4000-8000-000000000001",
+    "user_id": "e2000000-0000-4000-8000-000000000001",
+    "query": "What trend in spring-current vibration triggers a bearing review?",
+    "expected_document_ids": ["e4000000-0000-4000-8000-000000000001"],
+    "forbidden_document_ids": ["e4000000-0000-4000-8000-000000000009"]
+  },
+  {
+    "case_id": "heldout-003",
+    "tenant_id": "e1000000-0000-4000-8000-000000000001",
+    "user_id": "e2000000-0000-4000-8000-000000000001",
+    "query": "Which furnace conditions keep the Vesper cobalt glaze from blistering?",
+    "expected_document_ids": ["e4000000-0000-4000-8000-000000000002"],
+    "forbidden_document_ids": ["e4000000-0000-4000-8000-000000000010"]
+  },
+  {
+    "case_id": "heldout-004",
+    "tenant_id": "e1000000-0000-4000-8000-000000000001",
+    "user_id": "e2000000-0000-4000-8000-000000000001",
+    "query": "At what point in spring does the nightjar's northbound journey begin?",
+    "expected_document_ids": ["e4000000-0000-4000-8000-000000000003"],
+    "forbidden_document_ids": []
+  },
+  {
+    "case_id": "heldout-005",
+    "tenant_id": "e1000000-0000-4000-8000-000000000001",
+    "user_id": "e2000000-0000-4000-8000-000000000001",
+    "query": "Which sound frequency exposes fractures behind the Basalt Ridge tunnel supports?",
+    "expected_document_ids": ["e4000000-0000-4000-8000-000000000004"],
+    "forbidden_document_ids": []
+  },
+  {
+    "case_id": "heldout-006",
+    "tenant_id": "e1000000-0000-4000-8000-000000000001",
+    "user_id": "e2000000-0000-4000-8000-000000000001",
+    "query": "How much warmth remains inside the Selenic growing bay overnight?",
+    "expected_document_ids": ["e4000000-0000-4000-8000-000000000005"],
+    "forbidden_document_ids": []
+  },
+  {
+    "case_id": "heldout-007",
+    "tenant_id": "e1000000-0000-4000-8000-000000000001",
+    "user_id": "e2000000-0000-4000-8000-000000000001",
+    "query": "What service interval applies to brake linings on the cold-weather rail cars?",
+    "expected_document_ids": ["e4000000-0000-4000-8000-000000000006"],
+    "forbidden_document_ids": []
+  },
+  {
+    "case_id": "heldout-008",
+    "tenant_id": "e1000000-0000-4000-8000-000000000002",
+    "user_id": "e2000000-0000-4000-8000-000000000002",
+    "query": "Where did underwater grass become denser after spring rainwater arrived?",
+    "expected_document_ids": ["e4000000-0000-4000-8000-000000000007"],
+    "forbidden_document_ids": []
+  },
+  {
+    "case_id": "heldout-009",
+    "tenant_id": "e1000000-0000-4000-8000-000000000002",
+    "user_id": "e2000000-0000-4000-8000-000000000002",
+    "query": "How is the Lucent spacecraft's star sensor realigned after radiation exposure?",
+    "expected_document_ids": ["e4000000-0000-4000-8000-000000000008"],
+    "forbidden_document_ids": []
+  },
+  {
+    "case_id": "heldout-010",
+    "tenant_id": "e1000000-0000-4000-8000-000000000001",
+    "user_id": "e2000000-0000-4000-8000-000000000001",
+    "query": "Compare Aurelia rotor inspections with vibration trends during spring tides.",
+    "expected_document_ids": ["e4000000-0000-4000-8000-000000000001"],
+    "forbidden_document_ids": ["e4000000-0000-4000-8000-000000000009"]
+  }
+]
