@@ -3,7 +3,7 @@
     "case_id": "banking-001",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "Who wants to develop a data warehouse?",
+    "query": "consortium banks data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -12,7 +12,7 @@
     "case_id": "banking-002",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What is the purpose of the data warehouse?",
+    "query": "banks data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -21,7 +21,7 @@
     "case_id": "banking-003",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "Why are the banks building a data warehouse?",
+    "query": "consortium banks data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -30,7 +30,7 @@
     "case_id": "banking-004",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "For what decision-making need is the warehouse intended?",
+    "query": "data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -39,7 +39,7 @@
     "case_id": "banking-005",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What business problem is the consortium trying to solve?",
+    "query": "consortium data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -48,7 +48,7 @@
     "case_id": "banking-006",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What are the banks trying to improve with the warehouse?",
+    "query": "banks data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -57,7 +57,7 @@
     "case_id": "banking-007",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "Which organizations want to create a warehouse?",
+    "query": "consortium banks data warehouse",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -66,7 +66,7 @@
     "case_id": "banking-008",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What type of institution is pursuing this warehouse initiative?",
+    "query": "consortium banks data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -75,7 +75,7 @@
     "case_id": "banking-009",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What is the project intended to support?",
+    "query": "data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -84,7 +84,7 @@
     "case_id": "banking-010",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "Why is a warehouse valuable in the loan context?",
+    "query": "data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -93,7 +93,7 @@
     "case_id": "banking-011",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "Which decisions are the banks hoping to improve?",
+    "query": "banks data warehouse decisions",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -102,7 +102,7 @@
     "case_id": "banking-012",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "For what type of planning is the warehouse being designed?",
+    "query": "data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -111,7 +111,7 @@
     "case_id": "banking-013",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What does the consortium want to do with their loan schemes?",
+    "query": "consortium banks data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -120,7 +120,7 @@
     "case_id": "banking-014",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What is the warehouse expected to help the banks analyze?",
+    "query": "banks data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -129,7 +129,7 @@
     "case_id": "banking-015",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What kind of operational challenge are the banks addressing?",
+    "query": "banks data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -138,7 +138,7 @@
     "case_id": "banking-016",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "Which financial actors want this data warehouse?",
+    "query": "consortium banks data warehouse",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -147,7 +147,7 @@
     "case_id": "banking-017",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "How do the banks intend to use a data warehouse?",
+    "query": "banks data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -156,7 +156,7 @@
     "case_id": "banking-018",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What strategic objective motivates the warehouse effort?",
+    "query": "data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -165,7 +165,7 @@
     "case_id": "banking-019",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What is the main goal of the warehouse buildout?",
+    "query": "data warehouse loan schemes",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
@@ -174,10 +174,117 @@
     "case_id": "banking-020",
     "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
     "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
-    "query": "What are the banks trying to enable through this warehouse?",
+    "query": "banks data warehouse decisions",
     "expected_document_ids": [
       "27bf0f39-3c4c-4b25-88be-001f4c1351d0"
     ]
+  },
+  {
+    "case_id": "platform-001",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "PostgreSQL system of record vector lexical candidates reciprocal rank fusion",
+    "expected_document_ids": [
+      "b9f81518-a727-42e0-8806-a079102a2918"
+    ]
+  },
+  {
+    "case_id": "platform-002",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "PostgreSQL full text search lexical retrieval vector lexical candidates reciprocal rank fusion",
+    "expected_document_ids": [
+      "b9f81518-a727-42e0-8806-a079102a2918"
+    ]
+  },
+  {
+    "case_id": "platform-003",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "user identity authentication access data source",
+    "expected_document_ids": [
+      "90d8d21d-c6e3-48bf-8334-24e1e25107a5"
+    ]
+  },
+  {
+    "case_id": "platform-004",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "access user data source permission checks search results",
+    "expected_document_ids": [
+      "90d8d21d-c6e3-48bf-8334-24e1e25107a5"
+    ]
+  },
+  {
+    "case_id": "platform-005",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "uploaded documents storage search background processing completed",
+    "expected_document_ids": [
+      "7fa88f93-bca7-4652-b207-4f9de18f10d1"
+    ]
+  },
+  {
+    "case_id": "platform-006",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "pending job age failed job count processing duration searchable chunks",
+    "expected_document_ids": [
+      "7fa88f93-bca7-4652-b207-4f9de18f10d1"
+    ]
+  },
+  {
+    "case_id": "platform-007",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "representative evaluation set Recall@K Mean Reciprocal Rank",
+    "expected_document_ids": [
+      "90fe91db-8e03-47a9-ba4c-9a997dd707e6"
+    ]
+  },
+  {
+    "case_id": "platform-008",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "varied document collection same question one document retrieval generalizes across topics",
+    "expected_document_ids": [
+      "90fe91db-8e03-47a9-ba4c-9a997dd707e6"
+    ]
+  },
+  {
+    "case_id": "platform-009",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "equipment requests internal service desk laptop requests five business days start date",
+    "expected_document_ids": [
+      "1d99f991-6b60-44a0-bf26-fcfc75d0ae2f"
+    ]
+  },
+  {
+    "case_id": "platform-010",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "account setup multifactor authentication project data source manager access",
+    "expected_document_ids": [
+      "1d99f991-6b60-44a0-bf26-fcfc75d0ae2f"
+    ]
+  },
+  {
+    "case_id": "platform-011",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "production database backups daily restore tests monthly backups usable",
+    "expected_document_ids": [
+      "30b660c3-925e-4ff1-a63e-dbbf4702a9fd"
+    ]
+  },
+  {
+    "case_id": "platform-012",
+    "tenant_id": "9c0340ca-571b-4928-a0a6-a13de3b089eb",
+    "user_id": "72154ff0-9af7-4a91-9522-e63b5b9de18e",
+    "query": "source document stored files document versions chunks embeddings graph records tenant boundaries",
+    "expected_document_ids": [
+      "30b660c3-925e-4ff1-a63e-dbbf4702a9fd"
+    ]
   }
 ]
-

@@ -1,0 +1,923 @@
+{
+  "benchmark": "synthetic-heldout-v1",
+  "k": 5,
+  "case_count": 10,
+  "metrics_note": "Macro-averaged document-level Recall@5 and MRR@5 on static, manually labeled synthetic cases. No tuning was performed on this set.",
+  "environment": {
+    "embedding_model": "qwen3-embedding:0.6b",
+    "embedding_dimensions": 1024,
+    "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "corpus_documents": 11,
+    "execution_note": "Synthetic rows are created in a database transaction and rolled back. Timings are local-environment observations, not production benchmarks."
+  },
+  "aggregate": {
+    "vector": {
+      "recall_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "question_count": 10.0
+    },
+    "lexical": {
+      "recall_at_k": 0.0,
+      "mrr_at_k": 0.0,
+      "question_count": 10.0
+    },
+    "hybrid": {
+      "recall_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "question_count": 10.0
+    },
+    "graph_assisted_hybrid": {
+      "recall_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "question_count": 10.0
+    }
+  },
+  "cases": [
+    {
+      "case_id": "heldout-001",
+      "tenant_id": "e1000000-0000-4000-8000-000000000001",
+      "user_id": "e2000000-0000-4000-8000-000000000001",
+      "query": "When should engineers examine the tidal rotor blades at the Aurelia array?",
+      "expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000001"
+      ],
+      "forbidden_document_ids": [
+        "e4000000-0000-4000-8000-000000000009"
+      ],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000004",
+            "e4000000-0000-4000-8000-000000000011"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.1957679000333883
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [
+            "e4000000-0000-4000-8000-000000000001"
+          ],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 0.005100900016259402
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000006",
+            "e4000000-0000-4000-8000-000000000011"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.326151799992658
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000006",
+            "e4000000-0000-4000-8000-000000000011"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2752502000075765
+        }
+      }
+    },
+    {
+      "case_id": "heldout-002",
+      "tenant_id": "e1000000-0000-4000-8000-000000000001",
+      "user_id": "e2000000-0000-4000-8000-000000000001",
+      "query": "What trend in spring-current vibration triggers a bearing review?",
+      "expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000001"
+      ],
+      "forbidden_document_ids": [
+        "e4000000-0000-4000-8000-000000000009"
+      ],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000006",
+            "e4000000-0000-4000-8000-000000000011"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.1484709999640472
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [
+            "e4000000-0000-4000-8000-000000000001"
+          ],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 0.002944699954241514
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000011",
+            "e4000000-0000-4000-8000-000000000003",
+            "e4000000-0000-4000-8000-000000000004"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2456419999944046
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000011",
+            "e4000000-0000-4000-8000-000000000003",
+            "e4000000-0000-4000-8000-000000000004"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.245126000023447
+        }
+      }
+    },
+    {
+      "case_id": "heldout-003",
+      "tenant_id": "e1000000-0000-4000-8000-000000000001",
+      "user_id": "e2000000-0000-4000-8000-000000000001",
+      "query": "Which furnace conditions keep the Vesper cobalt glaze from blistering?",
+      "expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000002"
+      ],
+      "forbidden_document_ids": [
+        "e4000000-0000-4000-8000-000000000010"
+      ],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000002",
+            "e4000000-0000-4000-8000-000000000005",
+            "e4000000-0000-4000-8000-000000000004"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.221801499952562
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [
+            "e4000000-0000-4000-8000-000000000002"
+          ],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 0.0037715999642387033
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000002",
+            "e4000000-0000-4000-8000-000000000005",
+            "e4000000-0000-4000-8000-000000000004"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2619810000178404
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000002",
+            "e4000000-0000-4000-8000-000000000005",
+            "e4000000-0000-4000-8000-000000000004"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2471112000057474
+        }
+      }
+    },
+    {
+      "case_id": "heldout-004",
+      "tenant_id": "e1000000-0000-4000-8000-000000000001",
+      "user_id": "e2000000-0000-4000-8000-000000000001",
+      "query": "At what point in spring does the nightjar's northbound journey begin?",
+      "expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000003"
+      ],
+      "forbidden_document_ids": [],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000003",
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000005"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.209970500029158
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [
+            "e4000000-0000-4000-8000-000000000003"
+          ],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 0.002812699996866286
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000003",
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000002",
+            "e4000000-0000-4000-8000-000000000005"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2842356000328436
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000003",
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000002",
+            "e4000000-0000-4000-8000-000000000005"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.240805699955672
+        }
+      }
+    },
+    {
+      "case_id": "heldout-005",
+      "tenant_id": "e1000000-0000-4000-8000-000000000001",
+      "user_id": "e2000000-0000-4000-8000-000000000001",
+      "query": "Which sound frequency exposes fractures behind the Basalt Ridge tunnel supports?",
+      "expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000004"
+      ],
+      "forbidden_document_ids": [],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000004",
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000006"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.1833995999768376
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [
+            "e4000000-0000-4000-8000-000000000004"
+          ],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 0.002380999969318509
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000004",
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000003",
+            "e4000000-0000-4000-8000-000000000002"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2120741000398993
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000004",
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000003",
+            "e4000000-0000-4000-8000-000000000002"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.241459799988661
+        }
+      }
+    },
+    {
+      "case_id": "heldout-006",
+      "tenant_id": "e1000000-0000-4000-8000-000000000001",
+      "user_id": "e2000000-0000-4000-8000-000000000001",
+      "query": "How much warmth remains inside the Selenic growing bay overnight?",
+      "expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000005"
+      ],
+      "forbidden_document_ids": [],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000005",
+            "e4000000-0000-4000-8000-000000000003",
+            "e4000000-0000-4000-8000-000000000001"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.1992230000323616
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [
+            "e4000000-0000-4000-8000-000000000005"
+          ],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 0.0022911999840289354
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000005",
+            "e4000000-0000-4000-8000-000000000003",
+            "e4000000-0000-4000-8000-000000000002"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.216577799990773
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000005",
+            "e4000000-0000-4000-8000-000000000003",
+            "e4000000-0000-4000-8000-000000000002"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2499127999763004
+        }
+      }
+    },
+    {
+      "case_id": "heldout-007",
+      "tenant_id": "e1000000-0000-4000-8000-000000000001",
+      "user_id": "e2000000-0000-4000-8000-000000000001",
+      "query": "What service interval applies to brake linings on the cold-weather rail cars?",
+      "expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000006"
+      ],
+      "forbidden_document_ids": [],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000006",
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000005"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2224640999920666
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [
+            "e4000000-0000-4000-8000-000000000006"
+          ],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 0.002287500014062971
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000006",
+            "e4000000-0000-4000-8000-000000000011",
+            "e4000000-0000-4000-8000-000000000005",
+            "e4000000-0000-4000-8000-000000000001"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2733639999642037
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000006",
+            "e4000000-0000-4000-8000-000000000011",
+            "e4000000-0000-4000-8000-000000000005",
+            "e4000000-0000-4000-8000-000000000001"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2671837999951094
+        }
+      }
+    },
+    {
+      "case_id": "heldout-008",
+      "tenant_id": "e1000000-0000-4000-8000-000000000002",
+      "user_id": "e2000000-0000-4000-8000-000000000002",
+      "query": "Where did underwater grass become denser after spring rainwater arrived?",
+      "expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000007"
+      ],
+      "forbidden_document_ids": [],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000007",
+            "e4000000-0000-4000-8000-000000000008"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.1643657999811694
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [
+            "e4000000-0000-4000-8000-000000000007"
+          ],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 0.0025613000034354627
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000007",
+            "e4000000-0000-4000-8000-000000000008"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.1616870000143535
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000007",
+            "e4000000-0000-4000-8000-000000000008"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.247489199973643
+        }
+      }
+    },
+    {
+      "case_id": "heldout-009",
+      "tenant_id": "e1000000-0000-4000-8000-000000000002",
+      "user_id": "e2000000-0000-4000-8000-000000000002",
+      "query": "How is the Lucent spacecraft's star sensor realigned after radiation exposure?",
+      "expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000008"
+      ],
+      "forbidden_document_ids": [],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000008",
+            "e4000000-0000-4000-8000-000000000007"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.1954865000443533
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [
+            "e4000000-0000-4000-8000-000000000008"
+          ],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 0.002409999957308173
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000008",
+            "e4000000-0000-4000-8000-000000000007"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.162732800003141
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000008",
+            "e4000000-0000-4000-8000-000000000007"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.1651339000090957
+        }
+      }
+    },
+    {
+      "case_id": "heldout-010",
+      "tenant_id": "e1000000-0000-4000-8000-000000000001",
+      "user_id": "e2000000-0000-4000-8000-000000000001",
+      "query": "Compare Aurelia rotor inspections with vibration trends during spring tides.",
+      "expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000001"
+      ],
+      "forbidden_document_ids": [
+        "e4000000-0000-4000-8000-000000000009"
+      ],
+      "strategies": {
+        "vector": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000011",
+            "e4000000-0000-4000-8000-000000000003"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.1851731999777257
+        },
+        "lexical": {
+          "retrieved_document_ids": [],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [
+            "e4000000-0000-4000-8000-000000000001"
+          ],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 0.002626099972985685
+        },
+        "hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000011",
+            "e4000000-0000-4000-8000-000000000003"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2443358000018634
+        },
+        "graph_assisted_hybrid": {
+          "retrieved_document_ids": [
+            "e4000000-0000-4000-8000-000000000001",
+            "e4000000-0000-4000-8000-000000000011",
+            "e4000000-0000-4000-8000-000000000003"
+          ],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "missing_expected_document_ids": [],
+          "permission_violation_document_ids": [],
+          "forbidden_document_ids_returned": [],
+          "duration_seconds": 2.2667960999533534
+        }
+      }
+    }
+  ],
+  "per_case_failures": [
+    {
+      "case_id": "heldout-001",
+      "strategy": "lexical",
+      "missing_expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000001"
+      ]
+    },
+    {
+      "case_id": "heldout-002",
+      "strategy": "lexical",
+      "missing_expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000001"
+      ]
+    },
+    {
+      "case_id": "heldout-003",
+      "strategy": "lexical",
+      "missing_expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000002"
+      ]
+    },
+    {
+      "case_id": "heldout-004",
+      "strategy": "lexical",
+      "missing_expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000003"
+      ]
+    },
+    {
+      "case_id": "heldout-005",
+      "strategy": "lexical",
+      "missing_expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000004"
+      ]
+    },
+    {
+      "case_id": "heldout-006",
+      "strategy": "lexical",
+      "missing_expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000005"
+      ]
+    },
+    {
+      "case_id": "heldout-007",
+      "strategy": "lexical",
+      "missing_expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000006"
+      ]
+    },
+    {
+      "case_id": "heldout-008",
+      "strategy": "lexical",
+      "missing_expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000007"
+      ]
+    },
+    {
+      "case_id": "heldout-009",
+      "strategy": "lexical",
+      "missing_expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000008"
+      ]
+    },
+    {
+      "case_id": "heldout-010",
+      "strategy": "lexical",
+      "missing_expected_document_ids": [
+        "e4000000-0000-4000-8000-000000000001"
+      ]
+    }
+  ],
+  "empty_result_cases": {
+    "vector": [],
+    "lexical": [
+      "heldout-001",
+      "heldout-002",
+      "heldout-003",
+      "heldout-004",
+      "heldout-005",
+      "heldout-006",
+      "heldout-007",
+      "heldout-008",
+      "heldout-009",
+      "heldout-010"
+    ],
+    "hybrid": [],
+    "graph_assisted_hybrid": []
+  },
+  "permission_violations": [],
+  "duration_seconds_by_strategy": {
+    "vector": 21.92612309998367,
+    "lexical": 0.02918699983274564,
+    "hybrid": 22.38878190005198,
+    "graph_assisted_hybrid": 22.446268699888606
+  }
+}

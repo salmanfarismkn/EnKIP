@@ -1,7 +1,7 @@
 """add chunk embeddings
 
 Revision ID: 175f15a4bf3c
-Revises: fbe42262eb18
+Revises: 43a3f4e2c904
 Create Date: 2026-09-24 12:49:27.979336
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '175f15a4bf3c'
-down_revision: Union[str, Sequence[str], None] = 'fbe42262eb18'
+down_revision: Union[str, Sequence[str], None] = '43a3f4e2c904'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

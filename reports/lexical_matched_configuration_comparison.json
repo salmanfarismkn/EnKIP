@@ -1,0 +1,1138 @@
+{
+  "experiment": "postgresql-lexical-query-strategies-v1",
+  "scope": "Development-only matched vector/query configuration comparison. No production retrieval behavior or protected baseline/held-out artifacts changed.",
+  "query_strategies": [
+    "websearch_english",
+    "plainto_english",
+    "websearch_simple",
+    "plainto_simple"
+  ],
+  "index_configurations": {
+    "english_vector": "to_tsvector('english', chunk_text)",
+    "simple_vector": "to_tsvector('simple', chunk_text)"
+  },
+  "strategy_configurations": {
+    "websearch_english": "websearch_to_tsquery('english', query)",
+    "plainto_english": "plainto_tsquery('english', query)",
+    "websearch_simple": "websearch_to_tsquery('simple', query)",
+    "plainto_simple": "plainto_tsquery('simple', query)"
+  },
+  "configuration_comparison_note": "Every strategy uses vectors and a query built with the same configuration. Both temporary vectors are computed from the same synthetic chunk text; production DocumentChunk.search_vector is not changed.",
+  "ranking_and_access_note": "All strategies use the same source rows, tenant/user, actual PermissionService source allow-list, ts_rank_cd, and top-5 chunk limit. Recall/MRR macro averages include authorized expected cases only; unauthorized cases are evaluated as permission checks.",
+  "chunk_boundary_note": "Combined-text matches are diagnostics only. Retrieval remains per chunk; no concatenated text is indexed or searched.",
+  "k": 5,
+  "case_count": 10,
+  "quality_case_count": 9,
+  "aggregate": {
+    "websearch_english": {
+      "recall_at_k": 0.7777777777777778,
+      "mrr_at_k": 0.7777777777777778,
+      "question_count": 9.0
+    },
+    "plainto_english": {
+      "recall_at_k": 0.7777777777777778,
+      "mrr_at_k": 0.7777777777777778,
+      "question_count": 9.0
+    },
+    "websearch_simple": {
+      "recall_at_k": 0.6666666666666666,
+      "mrr_at_k": 0.6666666666666666,
+      "question_count": 9.0
+    },
+    "plainto_simple": {
+      "recall_at_k": 0.6666666666666666,
+      "mrr_at_k": 0.6666666666666666,
+      "question_count": 9.0
+    }
+  },
+  "per_case_failures": {
+    "websearch_english": [
+      {
+        "case_id": "lexdev-paraphrase-001",
+        "missing_expected_document_ids": [
+          "f4000000-0000-4000-8000-000000000001"
+        ]
+      },
+      {
+        "case_id": "lexdev-multichunk-split-001",
+        "missing_expected_document_ids": [
+          "f4000000-0000-4000-8000-000000000003"
+        ]
+      }
+    ],
+    "plainto_english": [
+      {
+        "case_id": "lexdev-paraphrase-001",
+        "missing_expected_document_ids": [
+          "f4000000-0000-4000-8000-000000000001"
+        ]
+      },
+      {
+        "case_id": "lexdev-multichunk-split-001",
+        "missing_expected_document_ids": [
+          "f4000000-0000-4000-8000-000000000003"
+        ]
+      }
+    ],
+    "websearch_simple": [
+      {
+        "case_id": "lexdev-stopword-001",
+        "missing_expected_document_ids": [
+          "f4000000-0000-4000-8000-000000000001"
+        ]
+      },
+      {
+        "case_id": "lexdev-paraphrase-001",
+        "missing_expected_document_ids": [
+          "f4000000-0000-4000-8000-000000000001"
+        ]
+      },
+      {
+        "case_id": "lexdev-multichunk-split-001",
+        "missing_expected_document_ids": [
+          "f4000000-0000-4000-8000-000000000003"
+        ]
+      }
+    ],
+    "plainto_simple": [
+      {
+        "case_id": "lexdev-stopword-001",
+        "missing_expected_document_ids": [
+          "f4000000-0000-4000-8000-000000000001"
+        ]
+      },
+      {
+        "case_id": "lexdev-paraphrase-001",
+        "missing_expected_document_ids": [
+          "f4000000-0000-4000-8000-000000000001"
+        ]
+      },
+      {
+        "case_id": "lexdev-multichunk-split-001",
+        "missing_expected_document_ids": [
+          "f4000000-0000-4000-8000-000000000003"
+        ]
+      }
+    ]
+  },
+  "empty_result_cases": {
+    "websearch_english": [
+      "lexdev-paraphrase-001",
+      "lexdev-multichunk-split-001",
+      "lexdev-unauthorized-001"
+    ],
+    "plainto_english": [
+      "lexdev-paraphrase-001",
+      "lexdev-multichunk-split-001",
+      "lexdev-unauthorized-001"
+    ],
+    "websearch_simple": [
+      "lexdev-stopword-001",
+      "lexdev-paraphrase-001",
+      "lexdev-multichunk-split-001",
+      "lexdev-unauthorized-001"
+    ],
+    "plainto_simple": [
+      "lexdev-stopword-001",
+      "lexdev-paraphrase-001",
+      "lexdev-multichunk-split-001",
+      "lexdev-unauthorized-001"
+    ]
+  },
+  "authorized_empty_result_cases": {
+    "websearch_english": [
+      "lexdev-paraphrase-001",
+      "lexdev-multichunk-split-001"
+    ],
+    "plainto_english": [
+      "lexdev-paraphrase-001",
+      "lexdev-multichunk-split-001"
+    ],
+    "websearch_simple": [
+      "lexdev-stopword-001",
+      "lexdev-paraphrase-001",
+      "lexdev-multichunk-split-001"
+    ],
+    "plainto_simple": [
+      "lexdev-stopword-001",
+      "lexdev-paraphrase-001",
+      "lexdev-multichunk-split-001"
+    ]
+  },
+  "permission_violations": [],
+  "cleanup_verified": true,
+  "cases": [
+    {
+      "case_id": "lexdev-exact-001",
+      "case_kind": "exact_terms",
+      "query": "helium lattice annealing",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000001"
+      ],
+      "expected_access": true,
+      "accessible_data_source_ids": [
+        "f3000000-0000-4000-8000-000000000001"
+      ],
+      "strategies": {
+        "websearch_english": {
+          "generated_tsquery": "'helium' & 'lattic' & 'anneal'",
+          "matched_chunk_ids": [
+            "ece99b00-608a-445c-a159-8f8839ece634"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ]
+        },
+        "plainto_english": {
+          "generated_tsquery": "'helium' & 'lattic' & 'anneal'",
+          "matched_chunk_ids": [
+            "ece99b00-608a-445c-a159-8f8839ece634"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ]
+        },
+        "websearch_simple": {
+          "generated_tsquery": "'helium' & 'lattice' & 'annealing'",
+          "matched_chunk_ids": [
+            "ece99b00-608a-445c-a159-8f8839ece634"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ]
+        },
+        "plainto_simple": {
+          "generated_tsquery": "'helium' & 'lattice' & 'annealing'",
+          "matched_chunk_ids": [
+            "ece99b00-608a-445c-a159-8f8839ece634"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "lexdev-stopword-001",
+      "case_kind": "english_stopword_removal",
+      "query": "the zircon grain",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000001"
+      ],
+      "expected_access": true,
+      "accessible_data_source_ids": [
+        "f3000000-0000-4000-8000-000000000001"
+      ],
+      "strategies": {
+        "websearch_english": {
+          "generated_tsquery": "'zircon' & 'grain'",
+          "matched_chunk_ids": [
+            "ece99b00-608a-445c-a159-8f8839ece634"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ]
+        },
+        "plainto_english": {
+          "generated_tsquery": "'zircon' & 'grain'",
+          "matched_chunk_ids": [
+            "ece99b00-608a-445c-a159-8f8839ece634"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ]
+        },
+        "websearch_simple": {
+          "generated_tsquery": "'the' & 'zircon' & 'grain'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ]
+        },
+        "plainto_simple": {
+          "generated_tsquery": "'the' & 'zircon' & 'grain'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000001"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "lexdev-paraphrase-001",
+      "case_kind": "synonym_paraphrase",
+      "query": "heat treatment stabilizes crystalline grain boundaries",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000001"
+      ],
+      "expected_access": true,
+      "accessible_data_source_ids": [
+        "f3000000-0000-4000-8000-000000000001"
+      ],
+      "strategies": {
+        "websearch_english": {
+          "generated_tsquery": "'heat' & 'treatment' & 'stabil' & 'crystallin' & 'grain' & 'boundari'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": []
+        },
+        "plainto_english": {
+          "generated_tsquery": "'heat' & 'treatment' & 'stabil' & 'crystallin' & 'grain' & 'boundari'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": []
+        },
+        "websearch_simple": {
+          "generated_tsquery": "'heat' & 'treatment' & 'stabilizes' & 'crystalline' & 'grain' & 'boundaries'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": []
+        },
+        "plainto_simple": {
+          "generated_tsquery": "'heat' & 'treatment' & 'stabilizes' & 'crystalline' & 'grain' & 'boundaries'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [
+            "f4000000-0000-4000-8000-000000000001"
+          ],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": []
+        }
+      }
+    },
+    {
+      "case_id": "lexdev-identifier-001",
+      "case_kind": "technical_identifier",
+      "query": "PX-410B",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000002"
+      ],
+      "expected_access": true,
+      "accessible_data_source_ids": [
+        "f3000000-0000-4000-8000-000000000001"
+      ],
+      "strategies": {
+        "websearch_english": {
+          "generated_tsquery": "'px-410b' <-> 'px' <-> '410b'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "plainto_english": {
+          "generated_tsquery": "'px-410b' & 'px' & '410b'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "websearch_simple": {
+          "generated_tsquery": "'px-410b' <-> 'px' <-> '410b'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "plainto_simple": {
+          "generated_tsquery": "'px-410b' & 'px' & '410b'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "lexdev-identifier-002",
+      "case_kind": "punctuated_identifier",
+      "query": "7A-2",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000002"
+      ],
+      "expected_access": true,
+      "accessible_data_source_ids": [
+        "f3000000-0000-4000-8000-000000000001"
+      ],
+      "strategies": {
+        "websearch_english": {
+          "generated_tsquery": "'7a' <-> '-2'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "plainto_english": {
+          "generated_tsquery": "'7a' & '-2'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "websearch_simple": {
+          "generated_tsquery": "'7a' <-> '-2'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "plainto_simple": {
+          "generated_tsquery": "'7a' & '-2'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "lexdev-identifier-003",
+      "case_kind": "underscore_mixed_case_identifier",
+      "query": "CLK_96Hz",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000002"
+      ],
+      "expected_access": true,
+      "accessible_data_source_ids": [
+        "f3000000-0000-4000-8000-000000000001"
+      ],
+      "strategies": {
+        "websearch_english": {
+          "generated_tsquery": "'clk' <-> '96hz'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "plainto_english": {
+          "generated_tsquery": "'clk' & '96hz'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "websearch_simple": {
+          "generated_tsquery": "'clk' <-> '96hz'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        },
+        "plainto_simple": {
+          "generated_tsquery": "'clk' & '96hz'",
+          "matched_chunk_ids": [
+            "598ce5f1-a00c-492c-b386-6766ce672da1"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000002"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000002"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "lexdev-multichunk-same-001",
+      "case_kind": "multi_chunk_same_chunk_terms",
+      "query": "quartz feldspar assay boron",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000003"
+      ],
+      "expected_access": true,
+      "accessible_data_source_ids": [
+        "f3000000-0000-4000-8000-000000000001"
+      ],
+      "strategies": {
+        "websearch_english": {
+          "generated_tsquery": "'quartz' & 'feldspar' & 'assay' & 'boron'",
+          "matched_chunk_ids": [
+            "028c947b-13c8-491e-8ca1-880cdb3485ce"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "chunk_boundary_analysis": {
+            "individually_matching_chunk_ids": [
+              "028c947b-13c8-491e-8ca1-880cdb3485ce"
+            ],
+            "combined_text_match_for_diagnostic_only": true
+          }
+        },
+        "plainto_english": {
+          "generated_tsquery": "'quartz' & 'feldspar' & 'assay' & 'boron'",
+          "matched_chunk_ids": [
+            "028c947b-13c8-491e-8ca1-880cdb3485ce"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "chunk_boundary_analysis": {
+            "individually_matching_chunk_ids": [
+              "028c947b-13c8-491e-8ca1-880cdb3485ce"
+            ],
+            "combined_text_match_for_diagnostic_only": true
+          }
+        },
+        "websearch_simple": {
+          "generated_tsquery": "'quartz' & 'feldspar' & 'assay' & 'boron'",
+          "matched_chunk_ids": [
+            "028c947b-13c8-491e-8ca1-880cdb3485ce"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "chunk_boundary_analysis": {
+            "individually_matching_chunk_ids": [
+              "028c947b-13c8-491e-8ca1-880cdb3485ce"
+            ],
+            "combined_text_match_for_diagnostic_only": true
+          }
+        },
+        "plainto_simple": {
+          "generated_tsquery": "'quartz' & 'feldspar' & 'assay' & 'boron'",
+          "matched_chunk_ids": [
+            "028c947b-13c8-491e-8ca1-880cdb3485ce"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "chunk_boundary_analysis": {
+            "individually_matching_chunk_ids": [
+              "028c947b-13c8-491e-8ca1-880cdb3485ce"
+            ],
+            "combined_text_match_for_diagnostic_only": true
+          }
+        }
+      }
+    },
+    {
+      "case_id": "lexdev-multichunk-split-001",
+      "case_kind": "multi_chunk_split_terms",
+      "query": "luminous quartz assay",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000003"
+      ],
+      "expected_access": true,
+      "accessible_data_source_ids": [
+        "f3000000-0000-4000-8000-000000000001"
+      ],
+      "strategies": {
+        "websearch_english": {
+          "generated_tsquery": "'lumin' & 'quartz' & 'assay'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [],
+          "chunk_boundary_analysis": {
+            "individually_matching_chunk_ids": [],
+            "combined_text_match_for_diagnostic_only": true
+          }
+        },
+        "plainto_english": {
+          "generated_tsquery": "'lumin' & 'quartz' & 'assay'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [],
+          "chunk_boundary_analysis": {
+            "individually_matching_chunk_ids": [],
+            "combined_text_match_for_diagnostic_only": true
+          }
+        },
+        "websearch_simple": {
+          "generated_tsquery": "'luminous' & 'quartz' & 'assay'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [],
+          "chunk_boundary_analysis": {
+            "individually_matching_chunk_ids": [],
+            "combined_text_match_for_diagnostic_only": true
+          }
+        },
+        "plainto_simple": {
+          "generated_tsquery": "'luminous' & 'quartz' & 'assay'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [
+            "f4000000-0000-4000-8000-000000000003"
+          ],
+          "metrics": {
+            "recall_at_k": 0.0,
+            "reciprocal_rank_at_k": 0.0,
+            "relevant_retrieved": 0,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [],
+          "chunk_boundary_analysis": {
+            "individually_matching_chunk_ids": [],
+            "combined_text_match_for_diagnostic_only": true
+          }
+        }
+      }
+    },
+    {
+      "case_id": "lexdev-unauthorized-001",
+      "case_kind": "unauthorized_relevant_document",
+      "query": "umbra payroll ciphertext audit",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000001",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000004"
+      ],
+      "expected_access": false,
+      "accessible_data_source_ids": [
+        "f3000000-0000-4000-8000-000000000001"
+      ],
+      "strategies": {
+        "websearch_english": {
+          "generated_tsquery": "'umbra' & 'payrol' & 'ciphertext' & 'audit'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [],
+          "metrics": null,
+          "production_baseline_document_ids": []
+        },
+        "plainto_english": {
+          "generated_tsquery": "'umbra' & 'payrol' & 'ciphertext' & 'audit'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [],
+          "metrics": null,
+          "production_baseline_document_ids": []
+        },
+        "websearch_simple": {
+          "generated_tsquery": "'umbra' & 'payroll' & 'ciphertext' & 'audit'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [],
+          "metrics": null,
+          "production_baseline_document_ids": []
+        },
+        "plainto_simple": {
+          "generated_tsquery": "'umbra' & 'payroll' & 'ciphertext' & 'audit'",
+          "matched_chunk_ids": [],
+          "matched_document_ids": [],
+          "expected_document_ids_returned": [],
+          "expected_document_ids_missing": [],
+          "metrics": null,
+          "production_baseline_document_ids": []
+        }
+      }
+    },
+    {
+      "case_id": "lexdev-authorized-restricted-001",
+      "case_kind": "authorized_restricted_document",
+      "query": "umbra payroll ciphertext audit",
+      "tenant_id": "f1000000-0000-4000-8000-000000000001",
+      "user_id": "f2000000-0000-4000-8000-000000000002",
+      "expected_document_ids": [
+        "f4000000-0000-4000-8000-000000000004"
+      ],
+      "expected_access": true,
+      "accessible_data_source_ids": [
+        "f3000000-0000-4000-8000-000000000002"
+      ],
+      "strategies": {
+        "websearch_english": {
+          "generated_tsquery": "'umbra' & 'payrol' & 'ciphertext' & 'audit'",
+          "matched_chunk_ids": [
+            "873c664d-c25d-47ce-987a-9b5f1878a4c7"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000004"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000004"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000004"
+          ]
+        },
+        "plainto_english": {
+          "generated_tsquery": "'umbra' & 'payrol' & 'ciphertext' & 'audit'",
+          "matched_chunk_ids": [
+            "873c664d-c25d-47ce-987a-9b5f1878a4c7"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000004"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000004"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000004"
+          ]
+        },
+        "websearch_simple": {
+          "generated_tsquery": "'umbra' & 'payroll' & 'ciphertext' & 'audit'",
+          "matched_chunk_ids": [
+            "873c664d-c25d-47ce-987a-9b5f1878a4c7"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000004"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000004"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000004"
+          ]
+        },
+        "plainto_simple": {
+          "generated_tsquery": "'umbra' & 'payroll' & 'ciphertext' & 'audit'",
+          "matched_chunk_ids": [
+            "873c664d-c25d-47ce-987a-9b5f1878a4c7"
+          ],
+          "matched_document_ids": [
+            "f4000000-0000-4000-8000-000000000004"
+          ],
+          "expected_document_ids_returned": [
+            "f4000000-0000-4000-8000-000000000004"
+          ],
+          "expected_document_ids_missing": [],
+          "metrics": {
+            "recall_at_k": 1.0,
+            "reciprocal_rank_at_k": 1.0,
+            "relevant_retrieved": 1,
+            "relevant_expected": 1
+          },
+          "production_baseline_document_ids": [
+            "f4000000-0000-4000-8000-000000000004"
+          ]
+        }
+      }
+    }
+  ]
+}
