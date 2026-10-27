@@ -234,6 +234,16 @@ class DocumentVersion(Base):
         nullable=False,
     )
 
+    source_object_key: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    source_mime_type: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     processing_status: Mapped[DocumentProcessingStatus] = mapped_column(
         String(32),
         nullable=False,
@@ -271,6 +281,10 @@ class DocumentVersion(Base):
             "checksum",
             name="uq_document_checksum",
         ),
+        UniqueConstraint(
+            "source_object_key",
+            name="uq_document_version_source_object_key",
+        ),
     )
 
 class IngestionJob(Base):
@@ -294,6 +308,11 @@ class IngestionJob(Base):
         ForeignKey("document_versions.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
+    )
+
+    expected_checksum: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
     )
 
     status: Mapped[IngestionStatus] = mapped_column(

@@ -35,6 +35,12 @@ class DocumentService:
 
         checksum = hashlib.sha256(content).hexdigest()
 
+        document = self._find_document(
+            tenant_id=tenant_id,
+            data_source_id=data_source_id,
+            filename=filename,
+        )
+
         existing_document = self._find_existing_document(
             tenant_id=tenant_id,
             data_source_id=data_source_id,
@@ -45,12 +51,6 @@ class DocumentService:
             raise ValueError(
                 "An identical document version already exists"
             )
-
-        document = self._find_document(
-            tenant_id=tenant_id,
-            data_source_id=data_source_id,
-            filename=filename,
-        )
 
         if document is None:
             document = Document(
@@ -82,45 +82,45 @@ class DocumentService:
             document_id=document.id,
             version_number=version_number,
             checksum=checksum,
+            source_mime_type=mime_type,
         )
 
         self._db.add(version)
         self._db.flush()
 
-        object_key = (
-            f"tenant/{tenant_id}/"
-            f"documents/{document.id}/"
-            f"versions/{version.id}/"
-            f"source"
-        )
-
-        print(
-            f"Storing {filename}: "
-            f"{len(content)} bytes"
-        )
-        
-        self._storage.put(
-            object_key,
-            content,
-        )
-
-        stored_content = self._storage.get(object_key)
-
-        if len(stored_content) != len(content):
-            raise RuntimeError(
-                "Stored object size does not match uploaded content"
-            )
-        
-        document.object_key = object_key
-
-        job = IngestionJob(
+        object_key = _version_source_key(
             tenant_id=tenant_id,
-            document_version_id=version.id,
+            document_id=document.id,
+            version_id=version.id,
         )
 
-        self._db.add(job)
+        try:
+            self._storage.put(object_key, content)
+            stored_content = self._storage.get(object_key)
+            stored_checksum = hashlib.sha256(
+                stored_content
+            ).hexdigest()
 
-        self._db.commit()
+            if stored_checksum != checksum:
+                raise RuntimeError(
+                    "Stored object checksum does not match uploaded content"
+                )
+
+            version.source_object_key = object_key
+            document.object_key = object_key
+
+            job = IngestionJob(
+                tenant_id=tenant_id,
+                document_version_id=version.id,
+                expected_checksum=checksum,
+            )
+
+            self._db.add(job)
+
+            self._db.commit()
+        except Exception:
+            self._db.rollback()
+            raise
 
         self._db.refresh(document)
         self._db.refresh(version)
@@ -153,10 +153,27 @@ class DocumentService:
         data_source_id: UUID,
         filename: str,
     ) -> Document | None:
-        statement = select(Document).where(
-            Document.tenant_id == tenant_id,
-            Document.data_source_id == data_source_id,
-            Document.title == filename,
+        statement = (
+            select(Document)
+            .where(
+                Document.tenant_id == tenant_id,
+                Document.data_source_id == data_source_id,
+                Document.title == filename,
+            )
+            .with_for_update()
         )
 
         return self._db.execute(statement).scalar_one_or_none()
+
+
+def _version_source_key(
+    tenant_id: UUID,
+    document_id: UUID,
+    version_id: UUID,
+) -> str:
+    return (
+        f"tenant/{tenant_id}/"
+        f"documents/{document_id}/"
+        f"versions/{version_id}/"
+        "source"
+    )
