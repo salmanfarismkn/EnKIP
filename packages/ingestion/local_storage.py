@@ -20,7 +20,8 @@ class LocalObjectStorage(ObjectStorage):
             exist_ok=True,
         )
 
-        path.write_bytes(data)
+        with path.open("xb") as file:
+            file.write(data)
 
     def get(self, key: str) -> bytes:
         path = self._resolve_key(key)

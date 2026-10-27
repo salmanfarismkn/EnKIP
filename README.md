@@ -185,6 +185,18 @@ Invoke-RestMethod http://localhost:11434/api/tags
 uploads create local files under `STORAGE_ROOT` and enqueue work for the
 separate worker.
 
+Each newly uploaded document version records its own immutable source-object
+key, MIME type, and SHA-256 checksum. The worker verifies the job checksum and
+version checksum against the stored bytes before parsing. After applying the
+version-source migration, historical versions are backfilled only when the
+document's recorded object key exactly matches the generated key for its
+latest version. Other historical versions remain without source metadata and
+will fail safely rather than reading a newer version's object. Backfill those
+versions only after locating the original object, independently verifying its
+SHA-256 against the version checksum, and confirming its original MIME type;
+if that evidence is unavailable, re-upload the source as a new version instead
+of assigning the current document object to an older version.
+
 For local startup failures, inspect the PostgreSQL health/logs, Alembic head,
 API database health, and Ollama tags:
 

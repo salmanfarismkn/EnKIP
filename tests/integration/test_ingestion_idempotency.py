@@ -1,3 +1,4 @@
+from hashlib import sha256
 from uuid import uuid4
 
 import pytest
@@ -38,6 +39,8 @@ class MemoryStorage:
         self.objects: dict[str, bytes] = {}
 
     def put(self, key: str, data: bytes) -> None:
+        if key in self.objects:
+            raise FileExistsError(key)
         self.objects[key] = data
 
     def get(self, key: str) -> bytes:
@@ -193,7 +196,7 @@ def test_ingestion_and_derived_records_are_idempotent(monkeypatch) -> None:
         )
         assert version_count == 1
 
-        changed_document, changed_version, _ = (
+        changed_document, changed_version, changed_job = (
             document_service.create_document(
                 tenant_id=tenant.id,
                 data_source_id=data_source.id,
@@ -205,6 +208,19 @@ def test_ingestion_and_derived_records_are_idempotent(monkeypatch) -> None:
         assert changed_document.id == document.id
         assert changed_version.id != version.id
         assert changed_version.version_number == 2
+        assert version.source_object_key != changed_version.source_object_key
+        assert version.source_object_key is not None
+        assert changed_version.source_object_key is not None
+        assert job.expected_checksum == version.checksum
+        assert version.checksum == sha256(content).hexdigest()
+        assert changed_job.expected_checksum == changed_version.checksum
+        assert version.source_mime_type == "text/plain"
+        assert changed_version.source_mime_type == "text/plain"
+        assert storage.get(version.source_object_key) == content
+        assert storage.get(changed_version.source_object_key) == (
+            b"Payment Service uses Redis with failover."
+        )
+        assert document.object_key == changed_version.source_object_key
 
         original_persist = GraphService.persist_extraction
         failure_state = {"injected": False}
@@ -236,6 +252,24 @@ def test_ingestion_and_derived_records_are_idempotent(monkeypatch) -> None:
             embedding_service=embedding_service,
         )
 
+        storage.objects[version.source_object_key] = b"corrupted source"
+        with pytest.raises(
+            ValueError,
+            match="Source object checksum mismatch",
+        ):
+            ingestion_service.process_job(job.id)
+
+        assert job.last_error is not None
+        assert "checksum mismatch" in job.last_error.lower()
+        assert _record_counts(db, tenant.id, version.id) == {
+            "chunks": 0,
+            "embeddings": 0,
+            "entities": 0,
+            "mentions": 0,
+            "relationships": 0,
+        }
+        storage.objects[version.source_object_key] = content
+
         with pytest.raises(
             RuntimeError,
             match="injected graph persistence failure",
@@ -252,7 +286,10 @@ def test_ingestion_and_derived_records_are_idempotent(monkeypatch) -> None:
 
         ingestion_service.process_job(job.id)
         db.refresh(job)
+        db.refresh(version)
         assert job.status == IngestionStatus.COMPLETED
+        assert version.extracted_text == content.decode("utf-8")
+        assert version.processing_error is None
 
         counts_after_success = _record_counts(
             db,
@@ -318,6 +355,59 @@ def test_ingestion_and_derived_records_are_idempotent(monkeypatch) -> None:
             version.id,
         )
         assert graph_counts_after_second == graph_counts_after_first
+
+        counts_for_published_version = _record_counts(
+            db,
+            tenant.id,
+            version.id,
+        )
+
+        def persist_then_fail(
+            service,
+            *args,
+            **kwargs,
+        ) -> None:
+            original_persist(service, *args, **kwargs)
+            raise RuntimeError("injected replacement ingestion failure")
+
+        monkeypatch.setattr(
+            GraphService,
+            "persist_extraction",
+            persist_then_fail,
+        )
+
+        with pytest.raises(
+            RuntimeError,
+            match="injected replacement ingestion failure",
+        ):
+            ingestion_service.process_job(changed_job.id)
+
+        db.refresh(version)
+        db.refresh(changed_version)
+        db.refresh(job)
+        db.refresh(changed_job)
+        assert version.processing_status == "completed"
+        assert job.status == IngestionStatus.COMPLETED
+        assert changed_version.processing_status == "failed"
+        assert changed_job.status == IngestionStatus.PENDING
+        assert _record_counts(db, tenant.id, version.id) == (
+            counts_for_published_version
+        )
+        assert db.scalar(
+            select(func.count()).select_from(DocumentChunk).where(
+                DocumentChunk.document_version_id == changed_version.id
+            )
+        ) == 0
+        assert db.scalar(
+            select(func.count()).select_from(ChunkEmbedding).where(
+                ChunkEmbedding.chunk_id.in_(
+                    select(DocumentChunk.id).where(
+                        DocumentChunk.document_version_id
+                        == changed_version.id
+                    )
+                )
+            )
+        ) == 0
     finally:
         db.close()
         transaction.rollback()

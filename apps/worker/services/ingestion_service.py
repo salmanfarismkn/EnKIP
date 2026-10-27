@@ -1,12 +1,14 @@
+import hashlib
 from datetime import datetime, timezone
-from marshal import version
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from apps.api.schemas import document
+from apps.api.config import settings
+from apps.worker.services.chunk_service import ChunkService
 from apps.worker.services.embedding_service import EmbeddingService
+from packages.ingestion.chunker import DocumentChunker
 from packages.domain.models import (
     Document,
     DocumentProcessingStatus,
@@ -16,12 +18,9 @@ from packages.domain.models import (
 )
 from packages.ingestion.parser_registry import ParserRegistry
 from packages.ingestion.storage import ObjectStorage
-from packages.ingestion.chunker import DocumentChunker
-from apps.worker.services.chunk_service import ChunkService
-from packages.llm.ollama_graph_extraction import OllamaGraphExtractor
 from packages.retrieval.graph_extraction import validate_extraction
 from packages.retrieval.graph_service import GraphService
-from apps.api.config import settings
+from packages.llm.ollama_graph_extraction import OllamaGraphExtractor
 
 class IngestionService:
     def __init__(
@@ -66,12 +65,19 @@ class IngestionService:
 
             self._db.commit()
 
-            content = self._storage.get(
-                document.object_key
+            content = self._load_verified_source(
+                job=job,
+                version=version,
             )
 
+            if not version.source_mime_type:
+                raise ValueError(
+                    f"Document version has no source MIME type: "
+                    f"{version.id}"
+                )
+
             parser = self._parser_registry.get_parser(
-                document.mime_type
+                version.source_mime_type
             )
 
             parsed = parser.parse(
@@ -118,6 +124,7 @@ class IngestionService:
                 )
 
             version.extracted_text = parsed.text
+            version.processing_error = None
 
             version.processing_status = (
                 DocumentProcessingStatus.COMPLETED
@@ -126,6 +133,7 @@ class IngestionService:
             job.status = IngestionStatus.COMPLETED
             job.completed_at = datetime.now(timezone.utc)
             job.error_message = None
+            job.last_error = None
 
             if hasattr(job, "claimed_at"):
                 job.claimed_at = None
@@ -144,9 +152,11 @@ class IngestionService:
             version.processing_status = (
                 DocumentProcessingStatus.FAILED
             )
+            version.processing_error = str(exc)
 
             job.completed_at = datetime.now(timezone.utc)
             job.error_message = str(exc)
+            job.last_error = str(exc)
 
             if hasattr(job, "claimed_at"):
                 job.claimed_at = None
@@ -166,7 +176,37 @@ class IngestionService:
 
             raise
 
+    def _load_verified_source(
+        self,
+        job: IngestionJob,
+        version: DocumentVersion,
+    ) -> bytes:
+        if job.document_version_id != version.id:
+            raise ValueError(
+                "Ingestion job references a different document version"
+            )
 
+        if not version.source_object_key:
+            raise ValueError(
+                f"Document version has no source object: {version.id}"
+            )
+
+        if job.expected_checksum != version.checksum:
+            raise ValueError(
+                f"Ingestion job checksum does not match document version: "
+                f"{version.id}"
+            )
+
+        content = self._storage.get(version.source_object_key)
+        actual_checksum = hashlib.sha256(content).hexdigest()
+
+        if actual_checksum != job.expected_checksum:
+            raise ValueError(
+                f"Source object checksum mismatch for document version: "
+                f"{version.id}"
+            )
+
+        return content
 
     def _get_job(self, job_id: UUID) -> IngestionJob:
         statement = select(IngestionJob).where(
