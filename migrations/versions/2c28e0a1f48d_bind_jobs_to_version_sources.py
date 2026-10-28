@@ -53,15 +53,6 @@ def upgrade() -> None:
     )
     op.execute(
         """
-        UPDATE document_versions AS version
-        SET source_mime_type = document.mime_type
-        FROM documents AS document
-        WHERE version.document_id = document.id
-          AND version.source_object_key IS NOT NULL
-        """
-    )
-    op.execute(
-        """
         UPDATE ingestion_jobs AS job
         SET expected_checksum = version.checksum
         FROM document_versions AS version
@@ -120,9 +111,69 @@ def upgrade() -> None:
         EXECUTE FUNCTION prevent_document_version_source_change()
         """
     )
+    op.execute(
+        """
+        CREATE FUNCTION prevent_ingestion_job_source_change()
+        RETURNS trigger
+        LANGUAGE plpgsql
+        AS $$
+        BEGIN
+            IF NEW.document_version_id
+                   IS DISTINCT FROM OLD.document_version_id
+               OR NEW.expected_checksum
+                   IS DISTINCT FROM OLD.expected_checksum THEN
+                RAISE EXCEPTION
+                    'ingestion job source identity is immutable';
+            END IF;
+
+            RETURN NEW;
+        END;
+        $$
+        """
+    )
+    op.execute(
+        """
+        CREATE TRIGGER ingestion_job_source_immutable
+        BEFORE UPDATE OF document_version_id, expected_checksum
+        ON ingestion_jobs
+        FOR EACH ROW
+        EXECUTE FUNCTION prevent_ingestion_job_source_change()
+        """
+    )
 
 
 def downgrade() -> None:
+    has_jobs = op.get_bind().execute(
+        sa.text("SELECT EXISTS (SELECT 1 FROM ingestion_jobs)")
+    ).scalar_one()
+    has_sources = op.get_bind().execute(
+        sa.text(
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM document_versions
+                WHERE source_object_key IS NOT NULL
+                   OR source_mime_type IS NOT NULL
+            )
+            """
+        )
+    ).scalar_one()
+    if has_jobs or has_sources:
+        raise RuntimeError(
+            "Cannot downgrade version-source metadata while ingestion "
+            "jobs or version source references exist; stop workers and "
+            "perform an explicitly reviewed data migration first"
+        )
+
+    op.execute(
+        """
+        DROP TRIGGER IF EXISTS ingestion_job_source_immutable
+        ON ingestion_jobs
+        """
+    )
+    op.execute(
+        "DROP FUNCTION IF EXISTS prevent_ingestion_job_source_change()"
+    )
     op.execute(
         """
         DROP TRIGGER IF EXISTS document_version_source_immutable

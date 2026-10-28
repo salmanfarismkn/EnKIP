@@ -187,15 +187,23 @@ separate worker.
 
 Each newly uploaded document version records its own immutable source-object
 key, MIME type, and SHA-256 checksum. The worker verifies the job checksum and
-version checksum against the stored bytes before parsing. After applying the
-version-source migration, historical versions are backfilled only when the
-document's recorded object key exactly matches the generated key for its
-latest version. Other historical versions remain without source metadata and
-will fail safely rather than reading a newer version's object. Backfill those
-versions only after locating the original object, independently verifying its
-SHA-256 against the version checksum, and confirming its original MIME type;
-if that evidence is unavailable, re-upload the source as a new version instead
-of assigning the current document object to an older version.
+version checksum against the stored bytes before parsing. The version-source
+migration associates a historical source key only when the document's recorded
+object key exactly matches the generated key for its latest version. It does
+not infer historical MIME types. Older or non-matching historical versions
+remain unassociated and fail safely rather than reading a newer version's
+object. Before backfilling legacy MIME/source metadata, locate the original
+object, independently verify its SHA-256 against the version checksum, and
+confirm its original MIME type; if that evidence is unavailable, re-upload the
+source as a new version instead of assigning the current document object to an
+older version.
+
+The version-source migration refuses to downgrade while ingestion jobs or
+version source metadata exist, because removing that metadata could let an
+older worker process a document's current object for the wrong version. For a
+rollback, stop workers and use a reviewed forward-compatible recovery plan;
+do not bypass this guard or roll back the application to a worker that reads
+`Document.object_key`.
 
 For local startup failures, inspect the PostgreSQL health/logs, Alembic head,
 API database health, and Ollama tags:
@@ -216,6 +224,22 @@ Run focused tests or the full suite:
 python -m pytest -q tests/unit/test_lexical_search.py tests/unit/test_retrieval_evaluation.py tests/unit/test_retrieval_evaluation_cases.py tests/unit/test_permissions.py tests/integration/test_ingestion_idempotency.py tests/integration/test_permission_aware_retrieval.py tests/integration/test_retrieval_security_boundary.py
 python -m pytest -q
 ```
+
+PostgreSQL-backed tests require an explicitly configured disposable database
+whose database name ends in `_test`. They create a random isolated schema,
+apply migrations in that schema, and drop only that schema at session end.
+Without `ENKIP_TEST_DATABASE_URL`, database-backed tests are skipped; they
+never fall back to `DATABASE_URL` or `.env`.
+
+```powershell
+$env:ENKIP_TEST_DATABASE_URL = "postgresql+psycopg://<user>:<password>@localhost:5432/enkip_test"
+python -m pytest -q
+```
+
+The test database must permit schema creation and `CREATE EXTENSION vector`.
+The migration acceptance test creates a second temporary schema at the
+previous revision, seeds representative historical records, and upgrades it
+to the current head.
 
 #### Evaluation Snapshot
 
