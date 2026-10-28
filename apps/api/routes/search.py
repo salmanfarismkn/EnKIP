@@ -9,6 +9,7 @@ from apps.api.schemas.search import (
     SearchResponse,
     SearchResult,
 )
+from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal, require_tenant_membership
 from apps.api.config import settings
 from packages.llm.ollama_embeddings import OllamaEmbeddingProvider
 from packages.retrieval.hybrid_search import HybridSearchService
@@ -28,9 +29,10 @@ router = APIRouter(
 def search(
     tenant_id: UUID,
     request: SearchRequest,
-    user_id: UUID | None = None,
+    principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ) -> SearchResponse:
+    require_tenant_membership(tenant_id, principal)
     provider = OllamaEmbeddingProvider(
         model_name=settings.embedding_model,
         dimensions=settings.embedding_dimensions,
@@ -53,7 +55,7 @@ def search(
     results = service.search(
         db=db,
         tenant_id=tenant_id,
-        user_id=user_id,
+        user_id=principal.user_id,
         query=request.query,
         limit=request.limit,
     )

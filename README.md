@@ -94,10 +94,28 @@ commands from the repository root.
 | `QUERY_DECOMPOSITION_ENABLED` | Declared setting with a default of `true`; current query handling does not read this flag, so changing it currently has no effect. |
 | `DECOMPOSITION_MODEL` | Ollama chat model used by query decomposition. |
 | `OLLAMA_BASE_URL` | Ollama API base URL; defaults in code to `http://localhost:11434`. |
+| `APP_ENV` | Runtime environment; use `production` outside local development. |
+| `AUTH_MODE` | Authentication mode. Default is `oidc`. Development-only mode is `development` and must use an existing internal user UUID. |
+| `OIDC_ISSUER` | Trusted issuer URL accepted by JWT validation. |
+| `OIDC_AUDIENCE` | Explicit API audience that must appear in tokens. |
+| `OIDC_JWKS_URI` | Trusted provider JWKS URL used for signing-key validation and rotation. |
+| `OIDC_ALGORITHMS` | Comma-separated asymmetric algorithms; default and recommended value is `RS256`. |
+| `OIDC_JWKS_CACHE_TTL_SECONDS` | Signing-key cache lifetime; minimum 30 seconds. |
+| `OIDC_REQUIRED_CLAIMS` | Optional comma-separated additional claims required in each token. |
+| `ENKIP_DEV_USER_ID` | Existing internal UUID used only by explicit `AUTH_MODE=development`; production startup rejects this mode. |
 
 One locally verified model pairing is `qwen3-embedding:0.6b` with 1024
 dimensions and `llama3.2:3b` for both chat settings. These are not code defaults;
 choose compatible tags and put them in `.env`.
+
+OIDC authentication resolves `(issuer, subject)` through the
+`external_identities` table to an enabled internal `User` and that user's tenant.
+The application never creates users, enables users, or grants tenant membership
+from token claims or caller-supplied tenant/user IDs. Account links and disabling
+state must be managed through an explicit reviewed administrative process.
+Identity-provider configuration is server-side only; bearer tokens and sensitive
+claims must not be written to application logs or error responses.
+Production startup rejects missing OIDC settings and any development authentication mode.
 
 ### PostgreSQL And Migrations
 

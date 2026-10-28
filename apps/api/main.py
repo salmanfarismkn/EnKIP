@@ -1,5 +1,9 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from apps.api.auth import validate_auth_configuration
 
 from apps.api.routes.health import router as health_router
 from apps.api.routes.tenants import router as tenant_router
@@ -14,10 +18,15 @@ from apps.api.routes.user import router as user_router
 
 def create_app() -> FastAPI:
 
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
+        validate_auth_configuration()
+        yield
 
     app = FastAPI(
         title="Enterprise Knowledge Intelligence Platform",
         version="0.1.0",
+        lifespan=lifespan,
     )
 
     app.add_middleware(

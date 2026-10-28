@@ -10,6 +10,7 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal, require_tenant_membership
 from apps.api.dependencies import get_db
 from apps.api.schemas.document import DocumentUploadResponse
 from apps.api.services.document_service import DocumentService
@@ -31,8 +32,10 @@ async def upload_document(
     tenant_id: UUID,
     data_source_id: UUID,
     file: UploadFile = File(...),
+    principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ) -> DocumentUploadResponse:
+    require_tenant_membership(tenant_id, principal)
     content = await file.read()
 
     if not content:

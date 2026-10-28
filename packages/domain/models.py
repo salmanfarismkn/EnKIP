@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
 from sqlalchemy import (
+    Boolean,
     DateTime,
     ForeignKey,
     Integer,
@@ -93,6 +94,13 @@ class User(Base):
         nullable=False,
     )
 
+    enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true",
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -108,6 +116,37 @@ class User(Base):
             "tenant_id",
             "email",
             name="uq_users_tenant_email",
+        ),
+    )
+
+
+class ExternalIdentity(Base):
+    __tablename__ = "external_identities"
+
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid4,
+    )
+    issuer: Mapped[str] = mapped_column(String(1024), nullable=False)
+    subject: Mapped[str] = mapped_column(String(1024), nullable=False)
+    user_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "issuer",
+            "subject",
+            name="uq_external_identity_issuer_subject",
         ),
     )
 

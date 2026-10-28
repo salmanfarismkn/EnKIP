@@ -401,3 +401,50 @@ def test_completed_source_identity_cannot_be_reassigned() -> None:
         assert db.get(IngestionJob, job_id).expected_checksum == (
             sha256(b"immutable source").hexdigest()
         )
+
+
+def test_auth_identity_migration_preserves_existing_users(migration_schema) -> None:
+    from sqlalchemy import create_engine
+
+    migration_engine = create_engine(migration_schema)
+    tenant_id = uuid4()
+    user_id = uuid4()
+
+    try:
+        with migration_engine.begin() as connection:
+            connection.execute(
+                text("INSERT INTO tenants (id, name) VALUES (:id, :name)"),
+                {"id": tenant_id, "name": "identity-migration-test"},
+            )
+            connection.execute(
+                text(
+                    "INSERT INTO users "
+                    "(id, tenant_id, email, display_name) "
+                    "VALUES (:id, :tenant_id, :email, :display_name)"
+                ),
+                {
+                    "id": user_id,
+                    "tenant_id": tenant_id,
+                    "email": "existing@example.com",
+                    "display_name": "Existing User",
+                },
+            )
+
+        from alembic import command
+        from alembic.config import Config
+
+        command.upgrade(Config("alembic.ini"), "7f4c2a9e1b6d")
+
+        with migration_engine.connect() as connection:
+            enabled = connection.execute(
+                text("SELECT enabled FROM users WHERE id = :id"),
+                {"id": user_id},
+            ).scalar_one()
+            mapping_count = connection.execute(
+                text("SELECT count(*) FROM external_identities")
+            ).scalar_one()
+
+        assert enabled is True
+        assert mapping_count == 0
+    finally:
+        migration_engine.dispose()

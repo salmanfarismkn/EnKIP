@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
+from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal
 from apps.api.dependencies import get_db
 from apps.api.schemas.tenant import TenantCreate, TenantResponse
 from apps.api.services.tenant_service import TenantService
@@ -19,8 +20,10 @@ router = APIRouter(
 )
 def create_tenant(
     payload: TenantCreate,
+    principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ) -> Tenant:
+    del principal
     service = TenantService(db)
 
     tenant_id = service.create_tenant(payload.name)
