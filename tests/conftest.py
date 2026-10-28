@@ -84,7 +84,7 @@ def pytest_collection_modifyitems(items) -> None:
     skip_database = pytest.mark.skip(
         reason=(
             "set ENKIP_TEST_DATABASE_URL to an isolated PostgreSQL "
-            "database whose name contains 'test'"
+            "database whose name ends in '_test'"
         )
     )
     database_node_fragments = (
