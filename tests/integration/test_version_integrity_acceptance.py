@@ -272,7 +272,9 @@ def test_previous_revision_migration_preserves_records_and_backfills_safely(
         from apps.api.config import settings
 
         previous_url = settings.database_url
-        settings.database_url = str(migration_schema)
+        settings.database_url = migration_schema.render_as_string(
+            hide_password=False
+        )
         try:
             command.upgrade(Config("alembic.ini"), "2c28e0a1f48d")
         finally:
@@ -348,7 +350,9 @@ def test_previous_revision_migration_preserves_records_and_backfills_safely(
         from apps.api.config import settings
 
         previous_url = settings.database_url
-        settings.database_url = str(migration_schema)
+        settings.database_url = migration_schema.render_as_string(
+            hide_password=False
+        )
         try:
             with pytest.raises(
                 RuntimeError,
@@ -433,7 +437,7 @@ def test_auth_identity_migration_preserves_existing_users(migration_schema) -> N
         from alembic import command
         from alembic.config import Config
 
-        command.upgrade(Config("alembic.ini"), "7f4c2a9e1b6d")
+        command.upgrade(Config("alembic.ini"), "head")
 
         with migration_engine.connect() as connection:
             enabled = connection.execute(
@@ -443,8 +447,13 @@ def test_auth_identity_migration_preserves_existing_users(migration_schema) -> N
             mapping_count = connection.execute(
                 text("SELECT count(*) FROM external_identities")
             ).scalar_one()
+            is_tenant_admin = connection.execute(
+                text("SELECT is_tenant_admin FROM users WHERE id = :id"),
+                {"id": user_id},
+            ).scalar_one()
 
         assert enabled is True
+        assert is_tenant_admin is False
         assert mapping_count == 0
     finally:
         migration_engine.dispose()

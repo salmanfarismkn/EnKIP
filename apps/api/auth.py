@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from urllib.parse import urlparse
 from uuid import UUID
 
 import jwt
@@ -40,12 +41,23 @@ def validate_auth_configuration() -> None:
     if auth_mode != "oidc":
         raise RuntimeError("AUTH_MODE must be 'oidc' or 'development'")
 
-    if app_env == "production" and (
-        not settings.oidc_issuer
-        or not settings.oidc_audience
-        or not settings.oidc_jwks_uri
-    ):
+    issuer = settings.oidc_issuer.strip() if settings.oidc_issuer else ""
+    audience = settings.oidc_audience.strip() if settings.oidc_audience else ""
+    jwks_uri = settings.oidc_jwks_uri.strip() if settings.oidc_jwks_uri else ""
+
+    if app_env == "production" and not (issuer and audience and jwks_uri):
         raise RuntimeError("OIDC issuer, audience, and JWKS URI must be configured in production")
+
+    issuer_url = urlparse(issuer) if issuer else None
+    jwks_url = urlparse(jwks_uri) if jwks_uri else None
+    if issuer_url and (issuer_url.scheme not in ("https", "http") or not issuer_url.netloc):
+        raise RuntimeError("OIDC_ISSUER must be an absolute HTTP(S) issuer URL")
+    if jwks_url and (jwks_url.scheme not in ("https", "http") or not jwks_url.netloc):
+        raise RuntimeError("OIDC_JWKS_URI must be an absolute HTTP(S) JWKS URL")
+    if app_env == "production" and issuer and issuer_url and issuer_url.scheme != "https":
+        raise RuntimeError("OIDC_ISSUER must use HTTPS in production")
+    if app_env == "production" and jwks_uri and jwks_url and jwks_url.scheme != "https":
+        raise RuntimeError("OIDC_JWKS_URI must use HTTPS in production")
 
     algorithms = allowed_algorithms()
     if not algorithms:
@@ -70,18 +82,19 @@ def allowed_algorithms() -> tuple[str, ...]:
 
 
 def _get_jwk_client() -> PyJWKClient:
-    if not settings.oidc_jwks_uri:
+    jwks_uri = settings.oidc_jwks_uri.strip() if settings.oidc_jwks_uri else ""
+    if not jwks_uri:
         raise HTTPException(status_code=503, detail="Authentication service is not configured")
 
     key = (
-        settings.oidc_jwks_uri,
+        jwks_uri,
         settings.oidc_jwks_cache_ttl_seconds,
         16,
     )
     client = _jwk_clients.get(key)
     if client is None:
         client = PyJWKClient(
-            settings.oidc_jwks_uri,
+            jwks_uri,
             cache_keys=True,
             lifespan=settings.oidc_jwks_cache_ttl_seconds,
             max_cached_keys=16,
@@ -100,7 +113,9 @@ def _unauthorized(detail: str = "Invalid or missing authentication credential") 
 
 def _verify_oidc_token(token: str) -> dict:
     try:
-        if not settings.oidc_issuer or not settings.oidc_audience:
+        issuer = settings.oidc_issuer.strip() if settings.oidc_issuer else ""
+        audience = settings.oidc_audience.strip() if settings.oidc_audience else ""
+        if not issuer or not audience:
             raise _unauthorized("Authentication service is not configured")
         algorithms = allowed_algorithms()
         if not algorithms:
@@ -119,8 +134,8 @@ def _verify_oidc_token(token: str) -> dict:
             token,
             signing_key.key,
             algorithms=list(algorithms),
-            issuer=settings.oidc_issuer,
-            audience=settings.oidc_audience,
+            issuer=issuer,
+            audience=audience,
             options={"require": sorted(required)},
         )
     except HTTPException:
@@ -197,4 +212,24 @@ def require_tenant_membership(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="The authenticated user is not a member of this tenant",
+        )
+
+
+def require_tenant_admin(
+    tenant_id: UUID,
+    principal: AuthenticatedPrincipal,
+    db: Session,
+) -> None:
+    require_tenant_membership(tenant_id, principal)
+    user = db.scalar(
+        select(User).where(
+            User.id == principal.user_id,
+            User.tenant_id == tenant_id,
+            User.enabled.is_(True),
+        )
+    )
+    if user is None or not user.is_tenant_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant administrator access is required",
         )

@@ -10,12 +10,13 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
-from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal, require_tenant_membership
+from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal, require_tenant_admin
 from apps.api.dependencies import get_db
 from apps.api.schemas.document import DocumentUploadResponse
 from apps.api.services.document_service import DocumentService
 from packages.ingestion.local_storage import LocalObjectStorage
 from apps.api.config import settings
+from packages.domain.models import DataSource
 
 router = APIRouter(
     prefix="/tenants/{tenant_id}/documents",
@@ -35,7 +36,13 @@ async def upload_document(
     principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ) -> DocumentUploadResponse:
-    require_tenant_membership(tenant_id, principal)
+    require_tenant_admin(tenant_id, principal, db)
+    data_source = db.get(DataSource, data_source_id)
+    if data_source is None or data_source.tenant_id != tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Data source not found in this tenant",
+        )
     content = await file.read()
 
     if not content:

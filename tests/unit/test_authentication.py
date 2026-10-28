@@ -144,6 +144,22 @@ def test_production_startup_rejects_missing_oidc_settings(monkeypatch):
         auth.validate_auth_configuration()
 
 
+def test_production_startup_rejects_invalid_oidc_urls(monkeypatch):
+    monkeypatch.setattr(settings, "app_env", "production")
+    monkeypatch.setattr(settings, "auth_mode", "oidc")
+    monkeypatch.setattr(settings, "oidc_issuer", "http://issuer.example")
+    monkeypatch.setattr(settings, "oidc_audience", "enkip-api")
+    monkeypatch.setattr(settings, "oidc_jwks_uri", "https://issuer.example/jwks")
+
+    with pytest.raises(RuntimeError, match="must use HTTPS"):
+        auth.validate_auth_configuration()
+
+    monkeypatch.setattr(settings, "oidc_issuer", "https://issuer.example")
+    monkeypatch.setattr(settings, "oidc_jwks_uri", "not-a-url")
+    with pytest.raises(RuntimeError, match="absolute HTTP"):
+        auth.validate_auth_configuration()
+
+
 def test_development_bypass_is_disabled_by_default_and_rejected_in_production(monkeypatch):
     monkeypatch.setattr(settings, "auth_mode", "development")
     monkeypatch.setattr(settings, "app_env", "development")
@@ -167,6 +183,19 @@ def test_token_errors_and_principal_errors_do_not_echo_token(rsa_keys, monkeypat
         auth._resolve_external_identity(SimpleNamespace(scalar=lambda statement: None), claims)
     assert token not in str(exc.value.detail)
     assert "External identity" in str(exc.value.detail)
+
+
+def test_tenant_admin_role_is_checked_from_live_database_record():
+    tenant_id = uuid4()
+    principal = auth.AuthenticatedPrincipal(uuid4(), tenant_id, "issuer", "subject", "user@example.com")
+
+    member = SimpleNamespace(is_tenant_admin=False)
+    with pytest.raises(HTTPException) as exc:
+        auth.require_tenant_admin(tenant_id, principal, SimpleNamespace(scalar=lambda statement: member))
+    assert exc.value.status_code == 403
+
+    admin = SimpleNamespace(is_tenant_admin=True)
+    auth.require_tenant_admin(tenant_id, principal, SimpleNamespace(scalar=lambda statement: admin))
 
 
 def test_tenant_spoofing_is_rejected():

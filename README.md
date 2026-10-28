@@ -117,6 +117,29 @@ Identity-provider configuration is server-side only; bearer tokens and sensitive
 claims must not be written to application logs or error responses.
 Production startup rejects missing OIDC settings and any development authentication mode.
 
+### Authorization Model
+
+- A user may access only its tenant and data sources for which a live
+  `data_source_access` row exists.
+- The `is_tenant_admin` user flag is checked against the database for every
+  administrative request; it is not inferred from tenant membership.
+- Tenant administrators may create users, data sources, document versions, and
+  manage data-source grants. Ordinary tenant members may use only their granted
+  data sources in search and query operations.
+- Tenant creation is not available through the public API. It requires a
+  deliberate system/bootstrap process outside this implementation. Existing
+  users with no tenant administrator must be promoted only through that controlled
+  process, such as a reviewed migration or direct administrator procedure.
+- User deletion disables the account and revokes its data-source access; external
+  identity mappings remain linked and no anonymous identity mapping is created.
+- Vector, lexical, and graph retrieval filter candidates by live data-source
+  grants and tenant. Query answer generation also rechecks candidate chunk access
+  before evidence is assembled.
+
+Administrative role and identity changes should be made only through a trusted
+process using the database or an explicitly authenticated administration tool.
+There is intentionally no public self-promotion endpoint.
+
 ### PostgreSQL And Migrations
 
 Start the existing service without deleting its named volume:

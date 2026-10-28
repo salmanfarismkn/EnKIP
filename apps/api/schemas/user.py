@@ -18,6 +18,7 @@ class UserResponse(BaseModel):
     email: str
     display_name: str
     enabled: bool
+    is_tenant_admin: bool
     created_at: datetime
 
 

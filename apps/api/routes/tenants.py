@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal
@@ -24,8 +24,13 @@ def create_tenant(
     db: Session = Depends(get_db),
 ) -> Tenant:
     del principal
-    service = TenantService(db)
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Tenant creation is a system-level operation and is not available through this API",
+    )
 
+    # This code is unreachable until a deliberate system bootstrap path is implemented.
+    service = TenantService(db)
     tenant_id = service.create_tenant(payload.name)
 
     tenant = db.get(Tenant, tenant_id)

@@ -25,6 +25,40 @@ def _isolated_url(url: URL, schema: str) -> URL:
     )
 
 
+def _development_urls() -> list[URL]:
+    urls: list[URL] = []
+    configured = os.environ.get("DATABASE_URL")
+    if configured:
+        try:
+            urls.append(make_url(configured))
+        except Exception:
+            pass
+
+    env_file = os.path.join(os.getcwd(), ".env")
+    if os.path.isfile(env_file):
+        with open(env_file, encoding="utf-8") as handle:
+            for line in handle:
+                line = line.strip()
+                if line.startswith("DATABASE_URL="):
+                    value = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    try:
+                        urls.append(make_url(value))
+                    except Exception:
+                        pass
+                    break
+    return urls
+
+
+def _same_database(left: URL, right: URL) -> bool:
+    return (
+        left.drivername == right.drivername
+        and left.host == right.host
+        and left.port == right.port
+        and left.database == right.database
+        and left.username == right.username
+    )
+
+
 def pytest_sessionstart(session) -> None:
     del session
     global _test_database_url, _admin_engine, _test_schema
@@ -40,6 +74,13 @@ def pytest_sessionstart(session) -> None:
             "whose name ends in '_test'; refusing to run database tests"
         )
 
+    for development_url in _development_urls():
+        if _same_database(url, development_url):
+            raise pytest.UsageError(
+                "ENKIP_TEST_DATABASE_URL must be distinct from DATABASE_URL/.env; "
+                "refusing to run database tests"
+            )
+
     _test_database_url = url
     _test_schema = f"enkip_test_{uuid4().hex}"
     _admin_engine = create_engine(url)
@@ -52,9 +93,9 @@ def pytest_sessionstart(session) -> None:
             text("CREATE EXTENSION IF NOT EXISTS vector")
         )
 
-    os.environ["DATABASE_URL"] = str(
-        _isolated_url(url, _test_schema)
-    )
+    os.environ["DATABASE_URL"] = _isolated_url(
+        url, _test_schema
+    ).render_as_string(hide_password=False)
 
     from alembic import command
     from alembic.config import Config
@@ -78,6 +119,13 @@ def pytest_sessionfinish(session, exitstatus) -> None:
 
 
 def pytest_collection_modifyitems(items) -> None:
+    skip_evaluation = pytest.mark.skip(
+        reason="retrieval evaluation cases require a separately provisioned dataset"
+    )
+    for item in items:
+        if "test_retrieval_cases_match_expected_documents_lexically" in item.nodeid:
+            item.add_marker(skip_evaluation)
+
     if _test_database_url is not None:
         return
 
@@ -117,7 +165,7 @@ def migration_schema():
     from apps.api.config import settings
 
     original_database_url = settings.database_url
-    settings.database_url = str(schema_url)
+    settings.database_url = schema_url.render_as_string(hide_password=False)
     try:
         command.upgrade(Config("alembic.ini"), "a8fd8271c5d9")
         yield schema_url

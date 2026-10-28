@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal, require_tenant_membership
+from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal, require_tenant_admin
 from apps.api.dependencies import get_db
 from apps.api.schemas.data_source import (
     DataSourceCreate,
@@ -28,7 +28,7 @@ def create_data_source(
     principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ) -> DataSourceResponse:
-    require_tenant_membership(tenant_id, principal)
+    require_tenant_admin(tenant_id, principal, db)
     service = DataSourceService(db)
 
     return service.create(
