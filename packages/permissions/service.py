@@ -9,6 +9,7 @@ from packages.domain.models import (
     Document,
     DocumentChunk,
     DocumentVersion,
+    User,
 )
 
 
@@ -20,6 +21,10 @@ class PermissionService:
         user_id: UUID | None,
     ) -> set[UUID]:
         if user_id is None:
+            return set()
+
+        user = db.get(User, user_id)
+        if user is None or not user.enabled or user.tenant_id != tenant_id:
             return set()
 
         stmt = (
@@ -42,6 +47,10 @@ class PermissionService:
         data_source_id: UUID,
     ) -> bool:
         if user_id is None:
+            return False
+
+        user = db.get(User, user_id)
+        if user is None or not user.enabled or user.tenant_id != tenant_id:
             return False
 
         stmt = (

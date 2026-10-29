@@ -88,6 +88,10 @@ commands from the repository root.
 |---|---|
 | `DATABASE_URL` | SQLAlchemy PostgreSQL URL. Use the database name, user, and password configured by the Compose service. |
 | `STORAGE_ROOT` | Local document-object storage path; defaults to `data`. The directory is created when local storage is initialized. |
+| `MAX_UPLOAD_BYTES` | Maximum multipart document size; default 25 MiB. The limit is enforced for both declared and actual bytes. |
+| `MAX_INGESTION_SOURCE_BYTES` | Maximum source object loaded by the worker; default 25 MiB. |
+| `MAX_INGESTION_CHUNKS` | Maximum chunks created by one document; default 10,000. |
+| `MAX_PDF_PAGES` | Maximum accepted and parsed PDF page count; default 1,000. |
 | `EMBEDDING_MODEL` | Ollama model tag used by ingestion and vector retrieval. |
 | `EMBEDDING_DIMENSIONS` | Embedding output size. The current schema stores 1024-dimensional vectors; the selected model and this value must agree. |
 | `GENERATION_MODEL` | Ollama chat model used for answer generation and graph extraction. |
@@ -224,7 +228,12 @@ Invoke-RestMethod http://localhost:11434/api/tags
 
 `/health` verifies PostgreSQL only; it does not verify Ollama models. Document
 uploads create local files under `STORAGE_ROOT` and enqueue work for the
-separate worker.
+separate worker. Uploads are limited to `MAX_UPLOAD_BYTES`, accepted only as
+plain text, Markdown, or PDF, checked for basic content validity, and stored
+with a unique per-version object key. The worker also enforces source-byte and
+chunk-count limits. The current worker loop processes one job at a time; PDF
+page parsing and large text parsing still cannot be forcibly interrupted by a
+timeout.
 
 Each newly uploaded document version records its own immutable source-object
 key, MIME type, and SHA-256 checksum. The worker verifies the job checksum and

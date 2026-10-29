@@ -15,6 +15,10 @@ from apps.api.dependencies import get_db
 from apps.api.schemas.document import DocumentUploadResponse
 from apps.api.services.document_service import DocumentService
 from packages.ingestion.local_storage import LocalObjectStorage
+from packages.ingestion.upload_validation import (
+    UploadValidationError,
+    validate_upload_content,
+)
 from apps.api.config import settings
 from packages.domain.models import DataSource
 
@@ -43,13 +47,48 @@ async def upload_document(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Data source not found in this tenant",
         )
-    content = await file.read()
+    if file.size is not None and file.size > settings.max_upload_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail="Uploaded file exceeds the configured size limit",
+        )
 
-    if not content:
+    chunks: list[bytes] = []
+    received_bytes = 0
+    while True:
+        chunk = await file.read(64 * 1024)
+        if not chunk:
+            break
+        received_bytes += len(chunk)
+        if received_bytes > settings.max_upload_bytes:
+            raise HTTPException(
+                status_code=413,
+                detail="Uploaded file exceeds the configured size limit",
+            )
+        chunks.append(chunk)
+
+    content = b"".join(chunks)
+
+    try:
+        validate_upload_content(
+            content,
+            file.content_type or "application/octet-stream",
+            max_pdf_pages=settings.max_pdf_pages,
+        )
+    except UploadValidationError as exc:
+        if file.content_type not in {
+            "text/plain",
+            "text/markdown",
+            "application/pdf",
+        }:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail=str(exc),
+            ) from exc
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Uploaded file is empty",
-        )
+            detail=str(exc),
+        ) from exc
 
     storage = LocalObjectStorage(
         root=settings.storage_root,

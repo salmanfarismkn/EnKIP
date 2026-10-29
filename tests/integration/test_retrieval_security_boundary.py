@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from sqlalchemy import func, update
+from sqlalchemy import delete, func, update
 from sqlalchemy.orm import Session
 
 from packages.domain.database import engine
@@ -275,6 +275,47 @@ def test_retrieval_respects_user_data_source_access() -> None:
             tenant.id,
             bob.id,
         ) == {hr.id}
+
+        db.execute(
+            delete(DataSourceAccess).where(
+                DataSourceAccess.tenant_id == tenant.id,
+                DataSourceAccess.user_id == alice.id,
+                DataSourceAccess.data_source_id == engineering.id,
+            )
+        )
+        db.flush()
+        assert permissions.get_accessible_data_source_ids(
+            db,
+            tenant.id,
+            alice.id,
+        ) == set()
+        assert permissions.can_access_chunk(
+            db,
+            tenant.id,
+            alice.id,
+            engineering_chunk.id,
+        ) is False
+
+        db.add(
+            DataSourceAccess(
+                tenant_id=tenant.id,
+                user_id=alice.id,
+                data_source_id=engineering.id,
+            )
+        )
+        alice.enabled = False
+        db.flush()
+        assert permissions.get_accessible_data_source_ids(
+            db,
+            tenant.id,
+            alice.id,
+        ) == set()
+        assert permissions.can_access_chunk(
+            db,
+            tenant.id,
+            alice.id,
+            engineering_chunk.id,
+        ) is False
     finally:
         db.close()
         transaction.rollback()

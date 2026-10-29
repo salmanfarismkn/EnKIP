@@ -56,7 +56,9 @@ def process_job(job_id: str) -> None:
             provider=embedding_provider,
         )
 
-        parser_registry = ParserRegistry()
+        parser_registry = ParserRegistry(
+            max_pdf_pages=settings.max_pdf_pages,
+        )
 
         chunker = DocumentChunker()
 

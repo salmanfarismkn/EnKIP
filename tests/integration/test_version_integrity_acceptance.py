@@ -152,10 +152,7 @@ def test_storage_created_before_database_failure_leaves_no_job_or_version() -> N
         ) == 0
         assert db.get(Document, document_id).object_key == "pending"
 
-    assert len(storage.objects) == 1
-    object_key, stored_content = next(iter(storage.objects.items()))
-    assert stored_content == content
-    assert sha256(stored_content).hexdigest() == sha256(content).hexdigest()
+    assert len(storage.objects) == 0
 
 
 def test_previous_revision_migration_preserves_records_and_backfills_safely(

@@ -1,11 +1,16 @@
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     database_url: str
     storage_root: Path = Path("data")
+    max_upload_bytes: int = 25 * 1024 * 1024
+    max_ingestion_source_bytes: int = 25 * 1024 * 1024
+    max_ingestion_chunks: int = 10_000
+    max_pdf_pages: int = 1_000
 
     embedding_model: str
     embedding_dimensions: int
@@ -26,6 +31,18 @@ class Settings(BaseSettings):
     oidc_jwks_cache_ttl_seconds: int = 300
     oidc_required_claims: str = ""
     development_user_id: str | None = None
+
+    @field_validator(
+        "max_upload_bytes",
+        "max_ingestion_source_bytes",
+        "max_ingestion_chunks",
+        "max_pdf_pages",
+    )
+    @classmethod
+    def positive_resource_limits(cls, value: int) -> int:
+        if value <= 0:
+            raise ValueError("resource limits must be positive")
+        return value
 
     model_config = SettingsConfigDict(
         env_file=".env",
