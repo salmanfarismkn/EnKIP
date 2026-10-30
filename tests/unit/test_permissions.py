@@ -4,7 +4,7 @@ from unittest.mock import Mock
 from packages.permissions.service import PermissionService
 
 
-def test_missing_user_uses_tenant_sources_when_access_is_unconfigured() -> None:
+def test_missing_user_has_no_tenant_sources() -> None:
     tenant_id = uuid4()
     source_ids = {uuid4(), uuid4()}
     db = Mock()
@@ -17,7 +17,8 @@ def test_missing_user_uses_tenant_sources_when_access_is_unconfigured() -> None:
         user_id=None,
     )
 
-    assert accessible == source_ids
+    assert accessible == set()
+    db.scalars.assert_not_called()
 
 
 def test_missing_user_gets_no_sources_when_access_is_configured() -> None:

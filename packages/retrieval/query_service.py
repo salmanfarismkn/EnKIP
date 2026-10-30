@@ -16,6 +16,7 @@ from packages.retrieval.reranker import Reranker
 from packages.retrieval.rrf import ReciprocalRankFusion
 from sqlalchemy.orm import Session
 from packages.retrieval.vector_search import VectorSearchService
+from packages.permissions.service import PermissionService
 
 class QueryService:
     def __init__(
@@ -67,9 +68,20 @@ class QueryService:
             user_id,
         )
 
-        candidates = self._select_candidates(
-            candidates,
-        )
+        candidates = self._select_candidates(candidates)
+
+        if user_id is not None:
+            permission_service = PermissionService()
+            candidates = [
+                candidate
+                for candidate in candidates
+                if permission_service.can_access_chunk(
+                    db=self._db,
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    chunk_id=candidate["chunk_id"],
+                )
+            ]
 
         evidence = self._evidence_assembler.assemble(
             candidates,

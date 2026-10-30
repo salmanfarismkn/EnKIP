@@ -1,3 +1,5 @@
+import os
+import tempfile
 from pathlib import Path
 
 from .storage import ObjectStorage
@@ -20,8 +22,30 @@ class LocalObjectStorage(ObjectStorage):
             exist_ok=True,
         )
 
-        with path.open("xb") as file:
-            file.write(data)
+        if path.exists():
+            raise FileExistsError(key)
+
+        temp_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="wb",
+                dir=path.parent,
+                prefix=f".{path.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as file:
+                temp_path = Path(file.name)
+                file.write(data)
+                file.flush()
+                os.fsync(file.fileno())
+
+            try:
+                os.link(temp_path, path)
+            except FileExistsError:
+                raise FileExistsError(key)
+        finally:
+            if temp_path is not None and temp_path.exists():
+                temp_path.unlink()
 
     def get(self, key: str) -> bytes:
         path = self._resolve_key(key)
@@ -33,6 +57,9 @@ class LocalObjectStorage(ObjectStorage):
 
         if path.exists():
             path.unlink()
+
+    def size(self, key: str) -> int:
+        return self._resolve_key(key).stat().st_size
 
     def _resolve_key(self, key: str) -> Path:
         path = (self._root / key).resolve()

@@ -152,10 +152,7 @@ def test_storage_created_before_database_failure_leaves_no_job_or_version() -> N
         ) == 0
         assert db.get(Document, document_id).object_key == "pending"
 
-    assert len(storage.objects) == 1
-    object_key, stored_content = next(iter(storage.objects.items()))
-    assert stored_content == content
-    assert sha256(stored_content).hexdigest() == sha256(content).hexdigest()
+    assert len(storage.objects) == 0
 
 
 def test_previous_revision_migration_preserves_records_and_backfills_safely(
@@ -272,7 +269,9 @@ def test_previous_revision_migration_preserves_records_and_backfills_safely(
         from apps.api.config import settings
 
         previous_url = settings.database_url
-        settings.database_url = str(migration_schema)
+        settings.database_url = migration_schema.render_as_string(
+            hide_password=False
+        )
         try:
             command.upgrade(Config("alembic.ini"), "2c28e0a1f48d")
         finally:
@@ -348,7 +347,9 @@ def test_previous_revision_migration_preserves_records_and_backfills_safely(
         from apps.api.config import settings
 
         previous_url = settings.database_url
-        settings.database_url = str(migration_schema)
+        settings.database_url = migration_schema.render_as_string(
+            hide_password=False
+        )
         try:
             with pytest.raises(
                 RuntimeError,
@@ -401,3 +402,55 @@ def test_completed_source_identity_cannot_be_reassigned() -> None:
         assert db.get(IngestionJob, job_id).expected_checksum == (
             sha256(b"immutable source").hexdigest()
         )
+
+
+def test_auth_identity_migration_preserves_existing_users(migration_schema) -> None:
+    from sqlalchemy import create_engine
+
+    migration_engine = create_engine(migration_schema)
+    tenant_id = uuid4()
+    user_id = uuid4()
+
+    try:
+        with migration_engine.begin() as connection:
+            connection.execute(
+                text("INSERT INTO tenants (id, name) VALUES (:id, :name)"),
+                {"id": tenant_id, "name": "identity-migration-test"},
+            )
+            connection.execute(
+                text(
+                    "INSERT INTO users "
+                    "(id, tenant_id, email, display_name) "
+                    "VALUES (:id, :tenant_id, :email, :display_name)"
+                ),
+                {
+                    "id": user_id,
+                    "tenant_id": tenant_id,
+                    "email": "existing@example.com",
+                    "display_name": "Existing User",
+                },
+            )
+
+        from alembic import command
+        from alembic.config import Config
+
+        command.upgrade(Config("alembic.ini"), "head")
+
+        with migration_engine.connect() as connection:
+            enabled = connection.execute(
+                text("SELECT enabled FROM users WHERE id = :id"),
+                {"id": user_id},
+            ).scalar_one()
+            mapping_count = connection.execute(
+                text("SELECT count(*) FROM external_identities")
+            ).scalar_one()
+            is_tenant_admin = connection.execute(
+                text("SELECT is_tenant_admin FROM users WHERE id = :id"),
+                {"id": user_id},
+            ).scalar_one()
+
+        assert enabled is True
+        assert is_tenant_admin is False
+        assert mapping_count == 0
+    finally:
+        migration_engine.dispose()

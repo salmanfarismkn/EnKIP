@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal, require_tenant_membership
 from apps.api.config import settings
 from apps.api.dependencies import get_db
 from apps.api.schemas.query import (
@@ -33,9 +34,10 @@ router = APIRouter(
 def query(
     tenant_id: UUID,
     request: QueryRequest,
-    user_id: UUID | None = None,
+    principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ) -> QueryResponse:
+    require_tenant_membership(tenant_id, principal)
     embedding_provider = OllamaEmbeddingProvider(
         model_name=settings.embedding_model,
         dimensions=settings.embedding_dimensions,
@@ -65,7 +67,7 @@ def query(
 
     result = service.answer(
         tenant_id=tenant_id,
-        user_id=user_id,
+        user_id=principal.user_id,
         query=request.query,
         evidence_limit=request.evidence_limit,
     )

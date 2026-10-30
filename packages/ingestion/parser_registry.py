@@ -4,9 +4,9 @@ from .text_parser import TextParser
 
 
 class ParserRegistry:
-    def __init__(self) -> None:
+    def __init__(self, max_pdf_pages: int = 1_000) -> None:
         self._parsers: list[DocumentParser] = [
-            PdfParser(),
+            PdfParser(max_pages=max_pdf_pages),
             TextParser(),
         ]
 

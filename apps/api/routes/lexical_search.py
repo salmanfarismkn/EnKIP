@@ -9,6 +9,7 @@ from apps.api.schemas.search import (
     SearchResponse,
     SearchResult,
 )
+from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal, require_tenant_membership
 from packages.retrieval.lexical_search import LexicalSearchService
 
 
@@ -22,12 +23,16 @@ router = APIRouter(
 def lexical_search(
     tenant_id: UUID,
     request: SearchRequest,
+    principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ) -> SearchResponse:
+    require_tenant_membership(tenant_id, principal)
     service = LexicalSearchService(db)
 
     results = service.search(
+        db=db,
         tenant_id=tenant_id,
+        user_id=principal.user_id,
         query=request.query,
         limit=request.limit,
     )
@@ -41,8 +46,8 @@ def lexical_search(
                 text=result["text"],
                 section_title=result["section_title"],
                 page_number=result["page_number"],
-                retrieval_score=result["score"],
-                rerank_score=result["rerank_score"],
+                retrieval_score=result.get("retrieval_score", result.get("rank", 0.0)),
+                rerank_score=result.get("rerank_score", result.get("retrieval_score", 0.0)),
             )
             for result in results
         ]

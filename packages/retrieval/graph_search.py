@@ -31,6 +31,7 @@ class GraphSearchService:
         db: Session,
         tenant_id: UUID,
         query: str,
+        user_id: UUID | None = None,
     ) -> list:
         if not query.strip():
             raise ValueError("Query must not be empty")
@@ -49,22 +50,12 @@ class GraphSearchService:
             for token in tokens
         ]
 
-        stmt = (
-            select(Entity)
-            .where(Entity.tenant_id == tenant_id)
-            .where(or_(*conditions))
-            .limit(10)
+        accessible_sources = self._permission_service.get_accessible_data_source_ids(
+            db=db,
+            tenant_id=tenant_id,
+            user_id=user_id,
         )
-
-        return list(db.scalars(stmt).all())
-
-    def related_entities(
-        self,
-        db: Session,
-        tenant_id: UUID,
-        entity_ids: list[UUID],
-    ) -> list:
-        if not entity_ids:
+        if not accessible_sources:
             return []
 
         stmt = (
@@ -76,7 +67,54 @@ class GraphSearchService:
                     EntityRelationship.target_entity_id == Entity.id,
                 ),
             )
+            .join(DocumentChunk, DocumentChunk.id == EntityRelationship.source_chunk_id)
+            .join(DocumentVersion, DocumentVersion.id == DocumentChunk.document_version_id)
+            .join(Document, Document.id == DocumentVersion.document_id)
+            .join(DataSource, DataSource.id == Document.data_source_id)
             .where(Entity.tenant_id == tenant_id)
+            .where(DocumentChunk.tenant_id == tenant_id)
+            .where(DataSource.id.in_(accessible_sources))
+            .where(or_(*conditions))
+            .distinct()
+            .limit(10)
+        )
+
+        return list(db.scalars(stmt).all())
+
+    def related_entities(
+        self,
+        db: Session,
+        tenant_id: UUID,
+        entity_ids: list[UUID],
+        user_id: UUID | None = None,
+    ) -> list:
+        if not entity_ids:
+            return []
+
+        accessible_sources = self._permission_service.get_accessible_data_source_ids(
+            db=db,
+            tenant_id=tenant_id,
+            user_id=user_id,
+        )
+        if not accessible_sources:
+            return []
+
+        stmt = (
+            select(Entity)
+            .join(
+                EntityRelationship,
+                or_(
+                    EntityRelationship.source_entity_id == Entity.id,
+                    EntityRelationship.target_entity_id == Entity.id,
+                ),
+            )
+            .join(DocumentChunk, DocumentChunk.id == EntityRelationship.source_chunk_id)
+            .join(DocumentVersion, DocumentVersion.id == DocumentChunk.document_version_id)
+            .join(Document, Document.id == DocumentVersion.document_id)
+            .join(DataSource, DataSource.id == Document.data_source_id)
+            .where(Entity.tenant_id == tenant_id)
+            .where(DocumentChunk.tenant_id == tenant_id)
+            .where(DataSource.id.in_(accessible_sources))
             .where(
                 or_(
                     EntityRelationship.source_entity_id.in_(entity_ids),
@@ -95,8 +133,17 @@ class GraphSearchService:
         db: Session,
         tenant_id: UUID,
         entity_ids: list[UUID],
+        user_id: UUID | None = None,
     ) -> list:
         if not entity_ids:
+            return []
+
+        accessible_sources = self._permission_service.get_accessible_data_source_ids(
+            db=db,
+            tenant_id=tenant_id,
+            user_id=user_id,
+        )
+        if not accessible_sources:
             return []
 
         stmt = (
@@ -106,10 +153,14 @@ class GraphSearchService:
                 EntityRelationship.source_chunk_id
                 == DocumentChunk.id,
             )
+            .join(DocumentVersion, DocumentVersion.id == DocumentChunk.document_version_id)
+            .join(Document, Document.id == DocumentVersion.document_id)
+            .join(DataSource, DataSource.id == Document.data_source_id)
             .where(
                 DocumentChunk.tenant_id
                 == tenant_id
             )
+            .where(DataSource.id.in_(accessible_sources))
             .where(
                 or_(
                     EntityRelationship.source_entity_id.in_(
@@ -157,6 +208,7 @@ class GraphSearchService:
             db=db,
             tenant_id=tenant_id,
             query=query,
+            user_id=user_id,
         )
 
         if not entities:
@@ -170,18 +222,17 @@ class GraphSearchService:
         relationships = list(
             db.scalars(
                 select(EntityRelationship)
-                .where(
-                    EntityRelationship.tenant_id
-                    == tenant_id
-                )
+                .join(DocumentChunk, DocumentChunk.id == EntityRelationship.source_chunk_id)
+                .join(DocumentVersion, DocumentVersion.id == DocumentChunk.document_version_id)
+                .join(Document, Document.id == DocumentVersion.document_id)
+                .join(DataSource, DataSource.id == Document.data_source_id)
+                .where(EntityRelationship.tenant_id == tenant_id)
+                .where(DocumentChunk.tenant_id == tenant_id)
+                .where(DataSource.id.in_(accessible_sources))
                 .where(
                     or_(
-                        EntityRelationship.source_entity_id.in_(
-                            entity_ids
-                        ),
-                        EntityRelationship.target_entity_id.in_(
-                            entity_ids
-                        ),
+                        EntityRelationship.source_entity_id.in_(entity_ids),
+                        EntityRelationship.target_entity_id.in_(entity_ids),
                     )
                 )
                 .limit(limit)

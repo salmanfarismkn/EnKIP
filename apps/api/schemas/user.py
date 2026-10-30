@@ -17,6 +17,8 @@ class UserResponse(BaseModel):
     tenant_id: UUID
     email: str
     display_name: str
+    enabled: bool
+    is_tenant_admin: bool
     created_at: datetime
 
 

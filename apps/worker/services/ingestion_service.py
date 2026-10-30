@@ -89,6 +89,11 @@ class IngestionService:
                 parsed
             )
 
+            if len(chunked_document) > settings.max_ingestion_chunks:
+                raise ValueError(
+                    "Document exceeds the configured ingestion chunk limit"
+                )
+
             chunks = self._chunk_service.replace_chunks(
                 tenant_id=document.tenant_id,
                 document_version_id=version.id,
@@ -197,7 +202,20 @@ class IngestionService:
                 f"{version.id}"
             )
 
+        size = getattr(self._storage, "size", None)
+        if callable(size):
+            source_size = size(version.source_object_key)
+            if source_size > settings.max_ingestion_source_bytes:
+                raise ValueError(
+                    "Source object exceeds the configured ingestion size limit"
+                )
+
         content = self._storage.get(version.source_object_key)
+        if len(content) > settings.max_ingestion_source_bytes:
+            raise ValueError(
+                "Source object exceeds the configured ingestion size limit"
+            )
+
         actual_checksum = hashlib.sha256(content).hexdigest()
 
         if actual_checksum != job.expected_checksum:

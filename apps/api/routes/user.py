@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from apps.api.auth import AuthenticatedPrincipal, get_authenticated_principal, require_tenant_admin, require_tenant_membership
 from apps.api.dependencies import get_db
 from apps.api.schemas.user import (
     UserCreate,
@@ -32,8 +33,10 @@ router = APIRouter(tags=["users and data-source access"])
 def create_user(
     tenant_id: UUID,
     payload: UserCreate,
+    principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ):
+    require_tenant_admin(tenant_id, principal, db)
     tenant = db.get(Tenant, tenant_id)
     if tenant is None:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -86,8 +89,15 @@ def create_user(
 def delete_user(
     tenant_id: UUID,
     user_id: UUID,
+    principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ):
+    require_tenant_admin(tenant_id, principal, db)
+    if user_id == principal.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A tenant administrator cannot disable their own account",
+        )
     user = db.scalar(
         select(User).where(
             User.id == user_id,
@@ -100,7 +110,13 @@ def delete_user(
             detail="User not found in this tenant",
         )
 
-    db.delete(user)
+    user.enabled = False
+    db.execute(
+        DataSourceAccess.__table__.delete().where(
+            DataSourceAccess.tenant_id == tenant_id,
+            DataSourceAccess.user_id == user_id,
+        )
+    )
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -115,12 +131,15 @@ def grant_data_source_access(
     data_source_id: UUID,
     payload: DataSourceAccessCreate,
     response: Response,
+    principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ):
+    require_tenant_admin(tenant_id, principal, db)
     user = db.scalar(
         select(User).where(
             User.id == payload.user_id,
             User.tenant_id == tenant_id,
+            User.enabled.is_(True),
         )
     )
     if user is None:
@@ -194,8 +213,10 @@ def revoke_data_source_access(
     tenant_id: UUID,
     data_source_id: UUID,
     user_id: UUID,
+    principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ):
+    require_tenant_admin(tenant_id, principal, db)
     access = db.scalar(
         select(DataSourceAccess).where(
             DataSourceAccess.tenant_id == tenant_id,
@@ -222,8 +243,15 @@ def revoke_data_source_access(
 def list_user_data_sources(
     tenant_id: UUID,
     user_id: UUID,
+    principal: AuthenticatedPrincipal = Depends(get_authenticated_principal),
     db: Session = Depends(get_db),
 ):
+    require_tenant_membership(tenant_id, principal)
+    if user_id != principal.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot access another user's data-source grants",
+        )
     user = db.scalar(
         select(User).where(
             User.id == user_id,

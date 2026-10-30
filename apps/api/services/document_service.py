@@ -94,8 +94,10 @@ class DocumentService:
             version_id=version.id,
         )
 
+        object_created = False
         try:
             self._storage.put(object_key, content)
+            object_created = True
             stored_content = self._storage.get(object_key)
             stored_checksum = hashlib.sha256(
                 stored_content
@@ -120,6 +122,11 @@ class DocumentService:
             self._db.commit()
         except Exception:
             self._db.rollback()
+            if object_created:
+                try:
+                    self._storage.delete(object_key)
+                except Exception:
+                    pass
             raise
 
         self._db.refresh(document)

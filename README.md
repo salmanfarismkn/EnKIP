@@ -88,16 +88,61 @@ commands from the repository root.
 |---|---|
 | `DATABASE_URL` | SQLAlchemy PostgreSQL URL. Use the database name, user, and password configured by the Compose service. |
 | `STORAGE_ROOT` | Local document-object storage path; defaults to `data`. The directory is created when local storage is initialized. |
+| `MAX_UPLOAD_BYTES` | Maximum multipart document size; default 25 MiB. The limit is enforced for both declared and actual bytes. |
+| `MAX_INGESTION_SOURCE_BYTES` | Maximum source object loaded by the worker; default 25 MiB. |
+| `MAX_INGESTION_CHUNKS` | Maximum chunks created by one document; default 10,000. |
+| `MAX_PDF_PAGES` | Maximum accepted and parsed PDF page count; default 1,000. |
 | `EMBEDDING_MODEL` | Ollama model tag used by ingestion and vector retrieval. |
 | `EMBEDDING_DIMENSIONS` | Embedding output size. The current schema stores 1024-dimensional vectors; the selected model and this value must agree. |
 | `GENERATION_MODEL` | Ollama chat model used for answer generation and graph extraction. |
 | `QUERY_DECOMPOSITION_ENABLED` | Declared setting with a default of `true`; current query handling does not read this flag, so changing it currently has no effect. |
 | `DECOMPOSITION_MODEL` | Ollama chat model used by query decomposition. |
 | `OLLAMA_BASE_URL` | Ollama API base URL; defaults in code to `http://localhost:11434`. |
+| `APP_ENV` | Runtime environment; use `production` outside local development. |
+| `AUTH_MODE` | Authentication mode. Default is `oidc`. Development-only mode is `development` and must use an existing internal user UUID. |
+| `OIDC_ISSUER` | Trusted issuer URL accepted by JWT validation. |
+| `OIDC_AUDIENCE` | Explicit API audience that must appear in tokens. |
+| `OIDC_JWKS_URI` | Trusted provider JWKS URL used for signing-key validation and rotation. |
+| `OIDC_ALGORITHMS` | Comma-separated asymmetric algorithms; default and recommended value is `RS256`. |
+| `OIDC_JWKS_CACHE_TTL_SECONDS` | Signing-key cache lifetime; minimum 30 seconds. |
+| `OIDC_REQUIRED_CLAIMS` | Optional comma-separated additional claims required in each token. |
+| `ENKIP_DEV_USER_ID` | Existing internal UUID used only by explicit `AUTH_MODE=development`; production startup rejects this mode. |
 
 One locally verified model pairing is `qwen3-embedding:0.6b` with 1024
 dimensions and `llama3.2:3b` for both chat settings. These are not code defaults;
 choose compatible tags and put them in `.env`.
+
+OIDC authentication resolves `(issuer, subject)` through the
+`external_identities` table to an enabled internal `User` and that user's tenant.
+The application never creates users, enables users, or grants tenant membership
+from token claims or caller-supplied tenant/user IDs. Account links and disabling
+state must be managed through an explicit reviewed administrative process.
+Identity-provider configuration is server-side only; bearer tokens and sensitive
+claims must not be written to application logs or error responses.
+Production startup rejects missing OIDC settings and any development authentication mode.
+
+### Authorization Model
+
+- A user may access only its tenant and data sources for which a live
+  `data_source_access` row exists.
+- The `is_tenant_admin` user flag is checked against the database for every
+  administrative request; it is not inferred from tenant membership.
+- Tenant administrators may create users, data sources, document versions, and
+  manage data-source grants. Ordinary tenant members may use only their granted
+  data sources in search and query operations.
+- Tenant creation is not available through the public API. It requires a
+  deliberate system/bootstrap process outside this implementation. Existing
+  users with no tenant administrator must be promoted only through that controlled
+  process, such as a reviewed migration or direct administrator procedure.
+- User deletion disables the account and revokes its data-source access; external
+  identity mappings remain linked and no anonymous identity mapping is created.
+- Vector, lexical, and graph retrieval filter candidates by live data-source
+  grants and tenant. Query answer generation also rechecks candidate chunk access
+  before evidence is assembled.
+
+Administrative role and identity changes should be made only through a trusted
+process using the database or an explicitly authenticated administration tool.
+There is intentionally no public self-promotion endpoint.
 
 ### PostgreSQL And Migrations
 
@@ -183,7 +228,12 @@ Invoke-RestMethod http://localhost:11434/api/tags
 
 `/health` verifies PostgreSQL only; it does not verify Ollama models. Document
 uploads create local files under `STORAGE_ROOT` and enqueue work for the
-separate worker.
+separate worker. Uploads are limited to `MAX_UPLOAD_BYTES`, accepted only as
+plain text, Markdown, or PDF, checked for basic content validity, and stored
+with a unique per-version object key. The worker also enforces source-byte and
+chunk-count limits. The current worker loop processes one job at a time; PDF
+page parsing and large text parsing still cannot be forcibly interrupted by a
+timeout.
 
 Each newly uploaded document version records its own immutable source-object
 key, MIME type, and SHA-256 checksum. The worker verifies the job checksum and
