@@ -34,16 +34,16 @@ The local API entry points are `GET /health`, `POST /tenants/{tenant_id}/documen
 ## Development Status
 
 Document ingestion, indexing, permission-aware retrieval, and evaluation have
-local test coverage. The graph-assisted path is implemented and tested, but
+local test coverage. OIDC/JWT identity mapping, tenant-admin authorization, live
+data-source grants, permission-aware retrieval, immutable version source keys,
+and upload/resource limits are implemented, with database-backed acceptance still
+environment-dependent. The graph-assisted path is implemented and tested, but
 current benchmark ties do not demonstrate a retrieval-quality improvement.
-Production authentication, production-scale throughput, deployment hardening,
-and broad retrieval quality have not been established.
 
-The search and query routes accept an optional `user_id` query parameter. There
-is no `X-User-ID` header wired into the API; sending one has no effect. A
-caller-supplied `user_id` and the `tenant_id` path component are development
-request context, not authentication or proof of identity. Do not expose this
-API as a production service without a separately designed authentication layer.
+Protected API routes require a verified bearer credential in OIDC mode. The
+development authentication mode is rejected in production and requires an
+explicit existing internal user ID. A caller-supplied tenant, user, document, or
+data-source ID is not accepted as proof of identity or authorization.
 
 ## Local Development Setup
 

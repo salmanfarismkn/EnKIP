@@ -104,6 +104,11 @@ def test_concurrent_uploads_allocate_unique_ordered_versions() -> None:
 
 def test_storage_created_before_database_failure_leaves_no_job_or_version() -> None:
     storage = MemoryStorage()
+    unrelated_key = (
+        f"tenant/{uuid4()}/documents/{uuid4()}/"
+        f"versions/{uuid4()}/source"
+    )
+    storage.put(unrelated_key, b"unrelated older version")
     with Session(engine, expire_on_commit=False) as setup_db:
         tenant, source = _create_tenant_and_source(setup_db)
         document = Document(
@@ -152,7 +157,9 @@ def test_storage_created_before_database_failure_leaves_no_job_or_version() -> N
         ) == 0
         assert db.get(Document, document_id).object_key == "pending"
 
-    assert len(storage.objects) == 0
+    assert storage.objects == {
+        unrelated_key: b"unrelated older version",
+    }
 
 
 def test_previous_revision_migration_preserves_records_and_backfills_safely(

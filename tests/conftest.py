@@ -53,9 +53,8 @@ def _same_database(left: URL, right: URL) -> bool:
     return (
         left.drivername == right.drivername
         and left.host == right.host
-        and left.port == right.port
+        and (left.port or 5432) == (right.port or 5432)
         and left.database == right.database
-        and left.username == right.username
     )
 
 
