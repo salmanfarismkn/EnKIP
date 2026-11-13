@@ -181,7 +181,86 @@ python -c "from sqlalchemy import text; from packages.domain.database import Ses
 python -c "from sqlalchemy import text; from packages.domain.database import SessionLocal; db=SessionLocal(); print(db.execute(text('SELECT indexdef FROM pg_indexes WHERE indexname = :name'), {'name': 'ix_document_chunks_search_vector'}).scalar_one()); db.close()"
 ```
 
-The API health endpoint is `GET /health`; it checks the database connection.
+The API exposes:
+
+- `GET /live` for process liveness only.
+- `GET /ready` for bounded PostgreSQL readiness; it returns `503` when PostgreSQL is unavailable.
+- `GET /health` as a compatibility endpoint that does not perform a dependency check.
+
+Containers should use `/live` and `/ready` as their liveness and readiness probes.
+
+### Container Deployment
+
+Copy `.env.production.example` to `.env.production` and replace all placeholders.
+The production configuration requires OIDC, model settings, a persistent
+`STORAGE_ROOT`, and a PostgreSQL URL. Development authentication, development
+CORS fallback, and the default `data` storage path are rejected in production.
+`.env.production` and the database password are deployment secrets; do not commit
+either file.
+
+Set the PostgreSQL initialization variables in the shell or deployment secret
+provider, then build and start the API, worker, PostgreSQL, and controlled
+migration service:
+
+```powershell
+$env:POSTGRES_DB = "<database>"
+$env:POSTGRES_USER = "<application-user>"
+$env:POSTGRES_PASSWORD = "<deployment-secret>"
+docker compose -f infrastructure/docker/compose.production.yml up -d --build
+docker compose -f infrastructure/docker/compose.production.yml ps
+```
+
+The migration service enables the pgvector extension and runs
+`alembic upgrade head`; ordinary API and worker startup never executes
+migrations. Stop deployment work with the migration service status rather than
+starting API replicas if migration reports failure.
+
+The API and worker share one image and dependency lock, but run as separate
+containers. Source storage and Hugging Face reranker cache use named volumes.
+Do not omit the `source_data` mount: temporary container storage is not a
+supported recovery source.
+
+The production Compose file does not bundle Ollama. Set `OLLAMA_BASE_URL` to an
+reachable Ollama deployment; Docker Desktop may use
+`http://host.docker.internal:11434` and Linux deployments must configure an
+equivalent reachable address.
+
+### Backup And Restore
+
+Stop the worker or place ingestion into a reviewed maintenance pause before a
+backup. This avoids copying a source file while a database transaction or source
+publication is changing it:
+
+```powershell
+$stamp = Get-Date -Format "yyyyMMddTHHmmssZ"
+python scripts/backup_enkip.py --output-dir "backups/$stamp"
+```
+
+The utility uses `DATABASE_URL` and `STORAGE_ROOT`, invokes `pg_dump -Fc`, writes
+the source tree as a compressed archive, and records SHA-256 checksums for both
+the dump and every restored source file. It never prints database credentials.
+Retain PostgreSQL and source archives from the same backup directory together.
+The utility does not upload archives to cloud storage or manage retention.
+
+Restore into a fresh disposable database and separate storage directory, never
+the development database:
+
+```powershell
+$env:DATABASE_URL = "<isolated-restore-database-url>"
+$env:ENKIP_ALLOW_DESTRUCTIVE_RESTORE = "true"
+python scripts/restore_enkip.py `
+ --archive "<backup-directory>" `
+ --target-storage-root "<isolated-storage-directory>"
+```
+
+The restore utility verifies archive checksums, restores the PostgreSQL custom
+dump with `pg_restore --clean --if-exists --no-owner`, extracts source files, and
+verifies every source checksum from the manifest. Backups contain database and
+source snapshots but not application secrets; retain `.env.production` through a
+separate deployment secret-management or encrypted configuration backup process.
+The explicit restore flag is required because database restore is destructive.
+Use a fresh isolated database and empty storage directory; the utility refuses
+to overwrite existing source files.
 
 ### Ollama
 
@@ -223,10 +302,16 @@ Verify the API and Ollama independently:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8000/health
+Invoke-RestMethod http://127.0.0.1:8000/live
+Invoke-RestMethod http://127.0.0.1:8000/ready
 Invoke-RestMethod http://localhost:11434/api/tags
 ```
 
-`/health` verifies PostgreSQL only; it does not verify Ollama models. Document
+`/live` is the liveness probe and does not query PostgreSQL. `/ready` performs
+a two-second PostgreSQL statement timeout check and returns HTTP 503 with a
+generic dependency status when unavailable; it does not verify Ollama models.
+`/health` is retained as a non-dependency-checking compatibility endpoint and
+does not expose database details. Document
 uploads create local files under `STORAGE_ROOT` and enqueue work for the
 separate worker. Uploads are limited to `MAX_UPLOAD_BYTES`, accepted only as
 plain text, Markdown, or PDF, checked for basic content validity, and stored
@@ -234,6 +319,21 @@ with a unique per-version object key. The worker also enforces source-byte and
 chunk-count limits. The current worker loop processes one job at a time; PDF
 page parsing and large text parsing still cannot be forcibly interrupted by a
 timeout.
+
+The worker polls PostgreSQL every two seconds. PostgreSQL polling failures are
+logged and retried without raising an unbounded worker exception loop. A job
+claimed by `FOR UPDATE SKIP LOCKED` remains the worker's active claim until it
+finishes, retries, or exceeds `max_attempts`. Processing claims are requeued
+after 15 minutes when stale or unclaimed, with `last_error` recording the
+recovery action. Terminal publication is committed in the ingestion
+transaction; chunks, embeddings, and graph records retain their existing
+idempotency or conflict protections on replay.
+
+`SIGINT` or `SIGTERM` stops new worker claims. A currently running parser or
+Ollama request is allowed to finish according to its existing timeout; the
+worker exits only after that processing call returns or fails. Parser and
+model operations therefore cannot be forcibly interrupted by this signal
+handling.
 
 Each newly uploaded document version records its own immutable source-object
 key, MIME type, and SHA-256 checksum. The worker verifies the job checksum and

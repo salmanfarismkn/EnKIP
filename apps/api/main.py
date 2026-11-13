@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from apps.api.auth import validate_auth_configuration
+from apps.api.config import settings, validate_deployment_configuration
 
 from apps.api.routes.health import router as health_router
 from apps.api.routes.tenants import router as tenant_router
@@ -20,6 +21,7 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
+        validate_deployment_configuration()
         validate_auth_configuration()
         yield
 
@@ -29,13 +31,27 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    app.add_middleware(
+    if settings.cors_allowed_origins.strip():
+        allowed_origins = [
+            origin.strip()
+            for origin in settings.cors_allowed_origins.split(",")
+            if origin.strip()
+        ]
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=allowed_origins,
+            allow_credentials=False,
+            allow_methods=["GET", "POST", "PUT", "DELETE"],
+            allow_headers=["Authorization", "Content-Type"],
+        )
+    else:
+        app.add_middleware(
         CORSMiddleware,
         allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
         allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
-    )
+        )
 
     app.include_router(health_router)
     app.include_router(tenant_router)

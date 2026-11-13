@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from uuid import uuid4
 
@@ -9,6 +10,7 @@ from apps.api.services.document_service import DocumentService
 from apps.worker.services.chunk_service import ChunkService
 from apps.worker.services.embedding_service import EmbeddingService
 from apps.worker.services.ingestion_service import IngestionService
+from apps.worker.services.job_queue import JobQueue
 from packages.domain.database import engine
 from packages.domain.models import (
     ChunkEmbedding,
@@ -142,6 +144,54 @@ def _record_counts(
             )
         ),
     }
+
+
+def test_stale_processing_job_is_recovered_to_pending() -> None:
+    connection = engine.connect()
+    transaction = connection.begin()
+    db = Session(
+        bind=connection,
+        expire_on_commit=False,
+        join_transaction_mode="create_savepoint",
+    )
+
+    try:
+        tenant = Tenant(name=f"stale-job-test-{uuid4()}")
+        db.add(tenant)
+        db.flush()
+        data_source = DataSource(
+            tenant_id=tenant.id,
+            name="Stale recovery",
+            source_type="test",
+        )
+        db.add(data_source)
+        db.flush()
+
+        storage = MemoryStorage()
+        document_service = DocumentService(db=db, storage=storage)
+        _, _, job = document_service.create_document(
+            tenant_id=tenant.id,
+            data_source_id=data_source.id,
+            filename="stale.txt",
+            mime_type="text/plain",
+            content=b"Stale processing claim",
+        )
+
+        job.status = IngestionStatus.PROCESSING
+        job.claimed_at = datetime.now(timezone.utc) - timedelta(minutes=20)
+        db.commit()
+
+        recovered = JobQueue().recover_stale_jobs(db, stale_after_minutes=15)
+        db.refresh(job)
+
+        assert recovered == 1
+        assert job.status == IngestionStatus.PENDING
+        assert job.claimed_at is None
+        assert job.last_error == "stale_claim_recovered:15_minutes"
+    finally:
+        db.close()
+        transaction.rollback()
+        connection.close()
 
 
 def test_ingestion_and_derived_records_are_idempotent(monkeypatch) -> None:

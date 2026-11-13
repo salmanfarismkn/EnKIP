@@ -8,9 +8,17 @@ This document describes the implementation as it exists now, not the earlier dev
 
 ## Executive summary
 
-EnKIP now has provider-neutral OIDC/JWT authentication, internal identity mapping, tenant-admin authorization, live data-source grants, permission-aware retrieval, immutable version object keys, streamed upload limits, and worker publication guards. These controls materially improve the earlier unsafe baseline.
+EnKIP now has provider-neutral OIDC/JWT authentication, internal identity mapping,
+tenant-admin authorization, live data-source grants, permission-aware retrieval,
+immutable version object keys, streamed upload limits, worker recovery controls,
+container deployment, and isolated backup/restore utilities.
 
-Production exposure still cannot be considered verified. PostgreSQL/pgvector acceptance, migration acceptance, revocation/disabled-user integration checks, and the important retrieval-isolation paths remain blocked because no approved disposable PostgreSQL instance is currently configured. Queue leases, active-version lifecycle operations, answer-evidence quality, observability, deployment controls, and measured database capacity also remain incomplete.
+PostgreSQL acceptance and deployment acceptance were subsequently completed
+against disposable environments. The evidence does not establish production
+capacity or production-environment readiness: renewable worker leases, answer
+factuality and prompt-injection resistance, rate limiting, production TLS,
+external Ollama operation, supply-chain scanning, and production-scale database
+capacity remain unverified or incomplete.
 
 **Do not treat passing unit tests as proof of production security.**
 
@@ -32,10 +40,10 @@ Production exposure still cannot be considered verified. PostgreSQL/pgvector acc
 | 4 | Document versioning, atomic publication, deletion, revocation and re-indexing | **IMPLEMENTED BUT INSUFFICIENTLY VERIFIED** | Per-version source keys, checksums, processing state, worker verification, source-size/chunk limits, and commit-failure cleanup are implemented. See [2c28e0a1f48d](../../migrations/versions/2c28e0a1f48d_bind_jobs_to_version_sources.py), [document_service.py](../../apps/api/services/document_service.py), and [local_storage.py](../../packages/ingestion/local_storage.py). No active-version/publication lifecycle, document delete/revoke, or re-index operation was found. PostgreSQL commit-failure and source-key acceptance is not executed in this environment. |
 | 5 | File validation, size/type limits, parser failure handling and storage integrity | **IMPLEMENTED BUT INSUFFICIENTLY VERIFIED** | Uploads stream in 64 KiB reads and enforce `MAX_UPLOAD_BYTES`; validation rejects empty, unsupported, malformed UTF-8, malformed/encrypted PDFs and PDFs above the configured page limit. Storage uses temporary files and per-version keys. Source-size and chunk-count guards are applied in the worker. Unit tests cover these behaviors, but real streamed-byte and commit-failure behavior remains PostgreSQL/storage acceptance-blocked. See [documents.py](../../apps/api/routes/documents.py), [upload_validation.py](../../packages/ingestion/upload_validation.py), [local_storage.py](../../packages/ingestion/local_storage.py), and [test_upload_security.py](../../tests/unit/test_upload_security.py). |
 | 6 | Retrieval quality, citation correctness, prompt-injection resistance and abstention | **PARTIALLY IMPLEMENTED** | Retrieval strategies, evidence assembly, evidence-number validation, and no-evidence fallback exist. The citation validator does not prove claim support, prompt-injection resistance has no acceptance suite, and abstention is not calibrated. The historical held-out report does not measure answer factuality, citation precision or injection resistance. See [citation_validator.py](../../packages/llm/citation_validator.py), [query_service.py](../../packages/retrieval/query_service.py), and [reports/heldout_acceptance_20261004.json](../../reports/heldout_acceptance_20261004.json). |
-| 7 | Database indexes, query plans, pools, migration safety and backup/restore | **PARTIALLY IMPLEMENTED** | Alembic, tenant/user indexes, lexical GIN, foreign keys, `pool_pre_ping`, and migration guards exist. No vector ANN index decision is evidence-driven, no production pool sizing/query-plan acceptance exists, and migration/backup/restore success is unverified in this environment. The migration chain is claimed only at Alembic-head level; PostgreSQL fresh-install and upgrade acceptance are not executed. See [database.py](../../packages/domain/database.py), [migrations](../../migrations), and [docker-compose.yml](../../infrastructure/docker/postgres/docker-compose.yml). |
+| 7 | Database indexes, query plans, pools, migration safety and backup/restore | **IMPLEMENTED BUT INSUFFICIENTLY VERIFIED** | Alembic, tenant/user indexes, lexical GIN, foreign keys, `pool_pre_ping`, migration guards, custom-format backups, source manifests, isolated restore, and checksum verification exist. Fresh/upgrade migration acceptance and utility-driven restore were executed against disposable PostgreSQL 17.11/pgvector 0.8.6. Production pool sizing, vector ANN selection, coordinated snapshots, and production-scale query plans remain unverified. See [database.py](../../packages/domain/database.py), [migrations](../../migrations), and [compose.production.yml](../../infrastructure/docker/compose.production.yml). |
 | 8 | Logs, metrics, tracing, health checks and alerting | **PARTIALLY IMPLEMENTED** | `/health` checks PostgreSQL and current worker/API paths have limited console output. No structured redacted logging, metrics, tracing, queue-age/dependency readiness telemetry, alert rules, or runbook is established. See [health.py](../../apps/api/routes/health.py), [main.py](../../apps/worker/main.py), and [ingestion_service.py](../../apps/worker/services/ingestion_service.py). |
 | 9 | Rate limits, timeouts, concurrency and resource usage | **PARTIALLY IMPLEMENTED** | Upload limits, parser/page limits, worker source/chunk guards, sequential worker execution, outbound model timeout configuration, and request candidate limits provide bounded behavior in several paths. No API/tenant rate limit, queue concurrency budget, database statement timeout, or load-derived request budget is established. A parser cannot cancel an already-running parse through the current interfaces. See [config.py](../../apps/api/config.py), [main.py](../../apps/worker/main.py), and [query.py](../../apps/api/routes/query.py). |
-| 10 | Containerization, CI/CD, secrets, deployment, rollback and supply chain | **PARTIALLY IMPLEMENTED** | A PostgreSQL Compose service and lockfile exist, but the repository has no API/worker container build, release workflow, production secret source, rollback procedure, image/dependency scan, signing, or deployment policy in the inspected state. Compose development credentials and mutable image tags are unsuitable for production. See [docker-compose.yml](../../infrastructure/docker/postgres/docker-compose.yml), `uv.lock`, and `.github/workflows` if present. |
+| 10 | Containerization, CI/CD, secrets, deployment, rollback and supply chain | **PARTIALLY IMPLEMENTED** | A shared non-root API/worker image, separate migration/API/worker Compose services, persistent volumes, controlled migrations, explicit environment configuration, and deployment acceptance script exist. CI/CD, production secret management, rollback automation, image/dependency scanning, signing, and production reverse-proxy/TLS policy remain unverified. See [Dockerfile](../../Dockerfile), [compose.production.yml](../../infrastructure/docker/compose.production.yml), and `uv.lock`. |
 | 11 | Test coverage, load tests and reproducible acceptance | **IMPLEMENTED BUT INSUFFICIENTLY VERIFIED** | Unit tests cover uploads, authentication, HTTP administration, citations, chunking, and parsers. PostgreSQL integration tests cover designed authorization/version behaviors but were not run successfully in the latest acceptance environment. No load, migration upgrade, multi-worker crash, restore, or reproducible release threshold was executed. |
 
 ## Route-to-policy inventory
@@ -94,21 +102,25 @@ Production exposure still cannot be considered verified. PostgreSQL/pgvector acc
 
 ### Executed successfully
 
-- Focused upload, authentication, and HTTP authorization suite: **28 passed**.
-- Full applicable database-independent suite: **62 passed, 1 skipped**.
-- Python byte compilation for application, worker, packages, and tests.
-- `uv lock --check`.
-- `git diff --check`.
-- Alembic head verification: `c4a91e2d7b55`.
-- Docker/local PostgreSQL availability check: Docker server unavailable and `127.0.0.1:5432` unreachable.
+- Earlier focused and full-suite runs are preserved as historical evidence and
+  are not combined into a single total.
+- PostgreSQL-backed suite: **84 passed, 2 skipped** in the latest applicable
+  run; skips were the opt-in performance benchmark and separately provisioned
+  retrieval evaluation dataset.
+- PostgreSQL 17.11 with pgvector 0.8.6, including fresh migration to
+  `c4a91e2d7b55`.
+- Deployment Compose acceptance, API/worker restart, SIGTERM handling, named
+  source-volume persistence, and non-root runtime verification.
+- Utility-driven custom-format backup and isolated restore with source
+  manifests, checksums, embeddings, grants, and authorized retrieval.
+- Python byte compilation, `uv lock --check`, `git diff --check`, and Alembic
+  head verification.
 
-### Not executed or blocked
+### Not verified or incomplete
 
-- PostgreSQL migration fresh-install/upgrade acceptance.
-- PostgreSQL commit-failure and source-object cleanup acceptance.
-- Revoked data-source access integration assertions against SQLAlchemy/PostgreSQL.
-- Disabled-user integration assertions against PostgreSQL.
-- Vector, lexical, graph, hybrid, reranked, citation, and generated-answer retrieval isolation with real database fixtures.
-- Load, two-worker crash recovery, restore, backup, deployment, and image-supply-chain checks.
-
-The first implementation milestone is therefore **PostgreSQL acceptance closure**, limited to the existing application architecture, before any new feature expansion or infrastructure rewrite.
+- Production-scale capacity, rate limiting, TLS/reverse proxy, CI/CD,
+  supply-chain scanning, rollback automation, and cloud deployment.
+- Live Ollama integration through the production Compose deployment.
+- Transactionally coordinated database/filesystem snapshots.
+- Renewable worker leases or claim fencing for stale-job recovery.
+- Answer factuality, calibrated abstention, and prompt-injection resistance.

@@ -1,6 +1,8 @@
 import hashlib
 from datetime import datetime, timezone
 from uuid import UUID
+import requests
+from sqlalchemy.exc import SQLAlchemyError
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -157,11 +159,16 @@ class IngestionService:
             version.processing_status = (
                 DocumentProcessingStatus.FAILED
             )
-            version.processing_error = str(exc)
+            failure_category = self._failure_category(exc)
+            failure_detail = self._safe_failure_detail(
+                failure_category,
+                exc,
+            )
+            version.processing_error = failure_detail
 
             job.completed_at = datetime.now(timezone.utc)
-            job.error_message = str(exc)
-            job.last_error = str(exc)
+            job.error_message = failure_detail
+            job.last_error = failure_detail
 
             if hasattr(job, "claimed_at"):
                 job.claimed_at = None
@@ -179,7 +186,51 @@ class IngestionService:
 
             self._db.commit()
 
+            setattr(exc, "failure_category", failure_category)
             raise
+
+    @staticmethod
+    def _failure_category(exc: Exception) -> str:
+        if isinstance(exc, requests.Timeout):
+            return "ollama_timeout"
+        if isinstance(exc, requests.ConnectionError):
+            return "ollama_unavailable"
+        if isinstance(exc, requests.HTTPError):
+            return "ollama_http_error"
+        if isinstance(exc, SQLAlchemyError):
+            return "database_unavailable"
+
+        message = str(exc).lower()
+        if "checksum mismatch" in message:
+            return "source_integrity"
+        if "no source object" in message or "checksum does not match" in message:
+            return "source_integrity"
+        if "exceeds the configured" in message:
+            return "resource_limit"
+        if "no source mime type" in message or "version has no source" in message:
+            return "source_configuration"
+        return "processing_error"
+
+    @staticmethod
+    def _safe_failure_detail(
+        category: str,
+        exc: Exception,
+    ) -> str:
+        if category == "source_integrity":
+            message = str(exc).strip()
+            if "checksum mismatch" in message.lower():
+                return "source_integrity: source checksum mismatch"
+            return f"source_integrity: {message}"
+        if category == "resource_limit":
+            return f"resource_limit: {str(exc).strip()}"
+        if category in {
+            "source_configuration",
+            "processing_error",
+        }:
+            message = str(exc).strip()
+            if message and len(message) <= 500:
+                return f"{category}: {message}"
+        return category
 
     def _load_verified_source(
         self,

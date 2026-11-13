@@ -1,0 +1,73 @@
+name: enkip
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  migrate:
+    build: ../..
+    image: enkip:local
+    restart: "no"
+    env_file:
+      - ../../.env.production
+    command: [".venv/bin/python", "-m", "scripts.migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build: ../..
+    image: enkip:local
+    restart: unless-stopped
+    env_file:
+      - ../../.env.production
+    command:
+      [".venv/bin/python", "-m", "uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "${ENKIP_API_PORT:-8000}:8000"
+    volumes:
+      - source_data:/var/lib/enkip/source
+      - reranker_cache:/app/.cache/huggingface
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/live', timeout=2)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  worker:
+    build: ../..
+    image: enkip:local
+    restart: unless-stopped
+    env_file:
+      - ../../.env.production
+    command: [".venv/bin/python", "-m", "apps.worker.main"]
+    volumes:
+      - source_data:/var/lib/enkip/source
+      - reranker_cache:/app/.cache/huggingface
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+  source_data:
+  reranker_cache:
