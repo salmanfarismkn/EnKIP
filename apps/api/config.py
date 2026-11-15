@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     oidc_jwks_cache_ttl_seconds: int = 300
     oidc_required_claims: str = ""
     development_user_id: str | None = None
+    cors_allowed_origins: str = ""
 
     @field_validator(
         "max_upload_bytes",
@@ -48,6 +49,25 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
     )
+
+
+def validate_deployment_configuration() -> None:
+    app_env = settings.app_env.strip().lower()
+    if app_env == "production":
+        if not settings.database_url.strip():
+            raise RuntimeError("DATABASE_URL is required in production")
+        if settings.auth_mode.strip().lower() == "development":
+            raise RuntimeError("Development authentication cannot be enabled in production")
+        if not settings.embedding_model.strip():
+            raise RuntimeError("EMBEDDING_MODEL is required")
+        if not settings.generation_model.strip():
+            raise RuntimeError("GENERATION_MODEL is required")
+        if not settings.decomposition_model.strip():
+            raise RuntimeError("DECOMPOSITION_MODEL is required")
+        if settings.embedding_dimensions <= 0:
+            raise RuntimeError("EMBEDDING_DIMENSIONS must be positive")
+        if settings.storage_root == Path("data"):
+            raise RuntimeError("STORAGE_ROOT must be a persistent deployment path in production")
 
 
 settings = Settings()
